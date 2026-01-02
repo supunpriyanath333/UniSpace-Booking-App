@@ -1,0 +1,65 @@
+import React, { useEffect, useRef } from "react";
+import { StyleSheet, Animated } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+
+export default function OnboardingLogo({ navigation }) {
+  const scaleAnim = useRef(new Animated.Value(0.3)).current; // start very small
+  const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1.4,   // 🔥 zoom bigger than normal
+          friction: 4,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.spring(scaleAnim, {
+        toValue: 1.1,     // settle slightly smaller
+        friction: 5,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setTimeout(() => {
+        navigation.replace("Login"); // optional
+      }, 800);
+    });
+  }, []);
+
+  return (
+    <LinearGradient
+      colors={["#F4D35E", "#F08A5D"]}
+      style={styles.container}
+    >
+      <Animated.Image
+        source={require("../../assets/unispace-logo.png")}
+        style={[
+          styles.logo,
+          {
+            transform: [{ scale: scaleAnim }],
+            opacity: opacityAnim,
+          },
+        ]}
+        resizeMode="contain"
+      />
+    </LinearGradient>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logo: {
+    width: 450,   // 🔥 bigger base size
+    height: 300,
+  },
+});
