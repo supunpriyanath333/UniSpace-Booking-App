@@ -1,4 +1,4 @@
-import "react-native-gesture-handler"; // ✅ MUST BE FIRST
+import "react-native-gesture-handler"; 
 
 import { NavigationContainer } from "@react-navigation/native";
 import AuthNavigator from "./src/navigation/AuthNavigator";
