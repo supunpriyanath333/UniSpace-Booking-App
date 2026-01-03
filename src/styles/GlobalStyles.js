@@ -15,32 +15,27 @@ export const GlobalStyles = StyleSheet.create({
     padding: 24,
     backgroundColor: Colors.background,
   },
-
   title: {
     fontSize: 22,
     fontWeight: "700",
     color: Colors.textDark,
   },
-
   subtitle: {
     color: Colors.textLight,
     marginBottom: 20,
   },
-
   label: {
     fontWeight: "600",
     marginTop: 10,
     marginBottom: 6,
     color: Colors.textDark,
   },
-
   input: {
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 10,
     padding: 12,
   },
-
   buttonPrimary: {
     backgroundColor: Colors.primary,
     paddingVertical: 14,
@@ -48,13 +43,11 @@ export const GlobalStyles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
   },
-
   buttonText: {
     color: "#FFF",
     fontSize: 16,
     fontWeight: "700",
   },
-
   center: {
     justifyContent: "center",
     alignItems: "center",

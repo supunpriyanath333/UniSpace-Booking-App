@@ -1,12 +1,17 @@
 import React, { useEffect, useRef } from "react";
 import { StyleSheet, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native"; // ✅ useNavigation hook
 
-export default function OnboardingLogo({ navigation }) {
-  const scaleAnim = useRef(new Animated.Value(0.3)).current;
+export default function OnboardingLogo() {
+  const navigation = useNavigation(); // ✅ get navigation safely
+
+  // Animation refs
+  const scaleAnim = useRef(new Animated.Value(0.3)).current; // start small
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Parallel animation: fade-in + zoom
     Animated.sequence([
       Animated.parallel([
         Animated.timing(opacityAnim, {
@@ -15,22 +20,24 @@ export default function OnboardingLogo({ navigation }) {
           useNativeDriver: true,
         }),
         Animated.spring(scaleAnim, {
-          toValue: 1.4,
+          toValue: 1.4, // zoom bigger
           friction: 4,
           useNativeDriver: true,
         }),
       ]),
+      // Settle slightly smaller for smooth effect
       Animated.spring(scaleAnim, {
         toValue: 1.1,
         friction: 5,
         useNativeDriver: true,
       }),
     ]).start(() => {
+      // Navigate to Login after short delay
       setTimeout(() => {
         navigation.replace("Login");
       }, 800);
     });
-  }, [navigation]);
+  }, []);
 
   return (
     <LinearGradient
@@ -38,15 +45,12 @@ export default function OnboardingLogo({ navigation }) {
       style={styles.container}
     >
       <Animated.Image
-        source={require("../../assets/unispace-logo.png")}
+        source={require("../../assets/unispace-logo.png")} // make sure this exists
         style={[
           styles.logo,
-          {
-            resizeMode: "contain", // ✅ FIXED: must be inside style
-            transform: [{ scale: scaleAnim }],
-            opacity: opacityAnim,
-          },
+          { transform: [{ scale: scaleAnim }], opacity: opacityAnim },
         ]}
+        resizeMode="contain"
       />
     </LinearGradient>
   );
@@ -59,7 +63,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: {
-    width: 450,
-    height: 300,
+    width: 260,
+    height: 120,
   },
 });
