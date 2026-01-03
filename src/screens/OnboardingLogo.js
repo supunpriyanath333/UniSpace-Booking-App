@@ -3,7 +3,7 @@ import { StyleSheet, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function OnboardingLogo({ navigation }) {
-  const scaleAnim = useRef(new Animated.Value(0.3)).current; // start very small
+  const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -15,22 +15,22 @@ export default function OnboardingLogo({ navigation }) {
           useNativeDriver: true,
         }),
         Animated.spring(scaleAnim, {
-          toValue: 1.4,   // 🔥 zoom bigger than normal
+          toValue: 1.4,
           friction: 4,
           useNativeDriver: true,
         }),
       ]),
       Animated.spring(scaleAnim, {
-        toValue: 1.1,     // settle slightly smaller
+        toValue: 1.1,
         friction: 5,
         useNativeDriver: true,
       }),
     ]).start(() => {
       setTimeout(() => {
-        navigation.replace("Login"); // optional
+        navigation.replace("Login");
       }, 800);
     });
-  }, []);
+  }, [navigation]);
 
   return (
     <LinearGradient
@@ -42,11 +42,11 @@ export default function OnboardingLogo({ navigation }) {
         style={[
           styles.logo,
           {
+            resizeMode: "contain", // ✅ FIXED: must be inside style
             transform: [{ scale: scaleAnim }],
             opacity: opacityAnim,
           },
         ]}
-        resizeMode="contain"
       />
     </LinearGradient>
   );
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: {
-    width: 450,   // 🔥 bigger base size
+    width: 450,
     height: 300,
   },
 });

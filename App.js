@@ -1,10 +1,12 @@
+import "react-native-gesture-handler"; // ✅ MUST BE FIRST
+
 import { NavigationContainer } from "@react-navigation/native";
-import OnboardingLogo from "./src/screens/OnboardingLogo";
+import AuthNavigator from "./src/navigation/AuthNavigator";
 
 export default function App() {
   return (
     <NavigationContainer>
-      <OnboardingLogo />
+      <AuthNavigator />
     </NavigationContainer>
   );
 }
