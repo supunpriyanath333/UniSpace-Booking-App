@@ -1,88 +1,139 @@
-import React, { useState } from "react";
-import { useNavigation } from "@react-navigation/native";
 import {
   View,
   Text,
   TextInput,
   Image,
   TouchableOpacity,
-  ScrollView,
+  StyleSheet,
 } from "react-native";
+import { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 
+import GlobalStyles from "../styles/GlobalStyles";
 import Button from "../components/Button";
-import styles from "../styles/GlobalStyles";
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const navigation = useNavigation();
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={GlobalStyles.container}>
       {/* Logo */}
-      <View style={[styles.center, { marginTop: 40 }]}>
+      <View style={pageStyles.logoContainer}>
         <Image
           source={require("../../assets/logo.png")}
-          style={{ width: 200, height: 70, resizeMode: "contain" }}
+          style={pageStyles.logo}
         />
       </View>
 
-      {/* Titles */}
-      <Text style={styles.title}>Get Started Now</Text>
-      <Text style={styles.subtitle}>Login to your account</Text>
+      {/* Title */}
+      <Text style={GlobalStyles.title}>Get Started Now</Text>
+      <Text style={GlobalStyles.subtitle}>Login to your account</Text>
 
       {/* Email */}
-      <Text style={styles.label}>Email</Text>
+      <Text style={GlobalStyles.label}>Email</Text>
       <TextInput
-        style={styles.input}
         placeholder="Enter your email address"
-        value={email}
-        onChangeText={setEmail}
+        style={GlobalStyles.input}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
 
       {/* Password */}
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      {/* Forgot password */}
-      <TouchableOpacity>
-        <Text style={styles.forgot}>Forgot Password ?</Text>
-      </TouchableOpacity>
-
-      {/* Login Button */}
-      <Button title="Log in" onPress={() => console.log("Login pressed")} />
-
-      {/* Register */}
-      <Text style={styles.registerText}>
-        Are You a New User ?{" "}
-        <Text style={styles.registerLink}>Register Now</Text>
-      </Text>
-
-      {/* Divider */}
-      <Text style={styles.dividerText}>Or Login with</Text>
-
-      {/* Social Login */}
-      <View style={styles.socialRow}>
-        <TouchableOpacity>
-          <Image
-            source={require("../../assets/facebook.png")}
-            style={styles.socialIcon}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity>
-          <Image
-            source={require("../../assets/google.png")}
-            style={styles.socialIcon}
+      <Text style={GlobalStyles.label}>Password</Text>
+      <View style={pageStyles.passwordContainer}>
+        <TextInput
+          placeholder="Enter your password"
+          secureTextEntry={!passwordVisible}
+          style={pageStyles.passwordInput}
+        />
+        <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+          <Ionicons
+            name={passwordVisible ? "eye-off-outline" : "eye-outline"}
+            size={22}
+            color="#555"
           />
         </TouchableOpacity>
       </View>
-    </ScrollView>
+
+      {/* Forgot password */}
+      <TouchableOpacity>
+        <Text style={GlobalStyles.forgotText}>Forgot Password ?</Text>
+      </TouchableOpacity>
+
+      {/* Login button */}
+      <Button
+        title="Log in"
+        onPress={() => navigation.replace("Home")}
+      />
+
+      {/* Register */}
+      <Text style={GlobalStyles.registerText}>
+        Are You a New User ?{" "}
+        <Text
+          style={GlobalStyles.registerLink}
+          onPress={() => navigation.navigate("Register")}
+        >
+          Register Now
+        </Text>
+      </Text>
+
+      {/* Divider */}
+      <Text style={GlobalStyles.dividerText}>Or Login with</Text>
+
+      {/* Social login */}
+      <View style={GlobalStyles.socialContainer}>
+        <TouchableOpacity style={pageStyles.socialButton}>
+          <Image
+            source={require("../../assets/facebook.png")}
+            style={GlobalStyles.socialIcon}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={pageStyles.socialButton}>
+          <Image
+            source={require("../../assets/google.png")}
+            style={GlobalStyles.socialIcon}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
+
+// 🟢 Page-level CSS
+const pageStyles = StyleSheet.create({
+  // Logo styles now in page-level CSS
+  logoContainer: {
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 0,
+  },
+  logo: {
+    width: 250,
+    height: 150,
+    resizeMode: "contain",
+  },
+
+  // Password container
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#CCC",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    height: 50,
+    marginTop: 8,
+  },
+  passwordInput: {
+    flex: 1,
+    height: "100%",
+  },
+
+  // Social buttons
+  socialButton: {
+    padding: 5,
+  },
+});

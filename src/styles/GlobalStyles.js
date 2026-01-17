@@ -7,41 +7,53 @@ export default StyleSheet.create({
     paddingHorizontal: 25,
   },
 
-  center: {
+  logoContainer: {
     alignItems: "center",
+    marginVertical: 40,
   },
 
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "700",
-    marginTop: 20,
+    color: "#000",
   },
 
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666",
-    marginBottom: 30,
+    marginBottom: 20,
   },
 
   label: {
     fontSize: 14,
     fontWeight: "600",
-    marginBottom: 6,
+    marginTop: 20,
   },
 
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 18,
-    fontSize: 16,
+    borderColor: "#CCC",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    height: 50,
+    marginTop: 8,
   },
 
-  forgot: {
+  forgotText: {
     alignSelf: "flex-end",
+    marginTop: 10,
     marginBottom: 20,
     color: "#000",
+    fontWeight: "500",
+  },
+
+  registerText: {
+    textAlign: "center",
+    marginTop: 25,
+  },
+
+  registerLink: {
+    color: "#D91C1C",
     fontWeight: "600",
   },
 
@@ -51,24 +63,14 @@ export default StyleSheet.create({
     color: "#777",
   },
 
-  socialRow: {
+  socialContainer: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-    marginTop: 10,
+    marginTop: 25,
   },
 
   socialIcon: {
-    width: 60,
-    height: 60,
-    resizeMode: "contain",
-  },
-
-  registerText: {
-    textAlign: "center",
-    marginTop: 20,
-  },
-
-  registerLink: {
-    fontWeight: "700",
+    width: 100,
+    height: 100,
   },
 });
