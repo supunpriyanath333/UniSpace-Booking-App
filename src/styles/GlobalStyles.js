@@ -3,31 +3,22 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 24,
+    backgroundColor: "#fff",
+    paddingHorizontal: 25,
   },
 
-  logoContainer: {
+  center: {
     alignItems: "center",
-    marginTop: 40,
-    marginBottom: 30,
-  },
-
-  logo: {
-    width: 180,
-    height: 60,
-    resizeMode: "contain",
   },
 
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "700",
-    color: "#000",
-    marginBottom: 6,
+    marginTop: 20,
   },
 
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: "#666",
     marginBottom: 30,
   },
@@ -36,91 +27,48 @@ export default StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 6,
-    color: "#000",
   },
 
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    marginBottom: 16,
-  },
-
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    marginBottom: 10,
-  },
-
-  passwordInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 15,
-  },
-
-  forgotText: {
-    alignSelf: "flex-end",
-    fontSize: 13,
-    color: "#000",
-    marginBottom: 25,
-  },
-
-  loginButton: {
-    backgroundColor: "#D91C1C",
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginBottom: 25,
-  },
-
-  loginButtonText: {
-    color: "#fff",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 18,
     fontSize: 16,
-    fontWeight: "700",
   },
 
-  registerText: {
-    textAlign: "center",
-    fontSize: 14,
-    marginBottom: 30,
-  },
-
-  registerLink: {
-    fontWeight: "700",
+  forgot: {
+    alignSelf: "flex-end",
+    marginBottom: 20,
+    color: "#000",
+    fontWeight: "600",
   },
 
   dividerText: {
     textAlign: "center",
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 20,
+    marginVertical: 20,
+    color: "#777",
   },
 
-  socialContainer: {
+  socialRow: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-  },
-
-  socialButton: {
-    width: 120,
-    height: 50,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    marginTop: 10,
   },
 
   socialIcon: {
-    width: 28,
-    height: 28,
+    width: 60,
+    height: 60,
     resizeMode: "contain",
+  },
+
+  registerText: {
+    textAlign: "center",
+    marginTop: 20,
+  },
+
+  registerLink: {
+    fontWeight: "700",
   },
 });

@@ -1,92 +1,88 @@
+import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import {
   View,
   Text,
   TextInput,
   Image,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
-import { useState } from "react";
-import GlobalStyles from "../styles/GlobalStyles";
-import { Ionicons } from "@expo/vector-icons";
+
+import Button from "../components/Button";
+import styles from "../styles/GlobalStyles";
 
 export default function LoginScreen() {
-  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
-    <View style={GlobalStyles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {/* Logo */}
-      <View style={GlobalStyles.logoContainer}>
+      <View style={[styles.center, { marginTop: 40 }]}>
         <Image
           source={require("../../assets/logo.png")}
-          style={GlobalStyles.logo}
+          style={{ width: 200, height: 70, resizeMode: "contain" }}
         />
       </View>
 
-      {/* Title */}
-      <Text style={GlobalStyles.title}>Get Started Now</Text>
-      <Text style={GlobalStyles.subtitle}>Login to your account</Text>
+      {/* Titles */}
+      <Text style={styles.title}>Get Started Now</Text>
+      <Text style={styles.subtitle}>Login to your account</Text>
 
       {/* Email */}
-      <Text style={GlobalStyles.label}>Email</Text>
+      <Text style={styles.label}>Email</Text>
       <TextInput
+        style={styles.input}
         placeholder="Enter your email address"
-        style={GlobalStyles.input}
+        value={email}
+        onChangeText={setEmail}
         keyboardType="email-address"
-        autoCapitalize="none"
       />
 
       {/* Password */}
-      <Text style={GlobalStyles.label}>Password</Text>
-      <View style={GlobalStyles.passwordContainer}>
-        <TextInput
-          placeholder="Enter your password"
-          secureTextEntry={!passwordVisible}
-          style={GlobalStyles.passwordInput}
-        />
-        <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
-          <Ionicons
-            name={passwordVisible ? "eye-off-outline" : "eye-outline"}
-            size={22}
-            color="#555"
-          />
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.label}>Password</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
 
       {/* Forgot password */}
       <TouchableOpacity>
-        <Text style={GlobalStyles.forgotText}>Forgot Password ?</Text>
+        <Text style={styles.forgot}>Forgot Password ?</Text>
       </TouchableOpacity>
 
-      {/* Login button */}
-      <TouchableOpacity style={GlobalStyles.loginButton}>
-        <Text style={GlobalStyles.loginButtonText}>Log in</Text>
-      </TouchableOpacity>
+      {/* Login Button */}
+      <Button title="Log in" onPress={() => console.log("Login pressed")} />
 
       {/* Register */}
-      <Text style={GlobalStyles.registerText}>
+      <Text style={styles.registerText}>
         Are You a New User ?{" "}
-        <Text style={GlobalStyles.registerLink}>Register Now</Text>
+        <Text style={styles.registerLink}>Register Now</Text>
       </Text>
 
       {/* Divider */}
-      <Text style={GlobalStyles.dividerText}>Or Login with</Text>
+      <Text style={styles.dividerText}>Or Login with</Text>
 
-      {/* Social login */}
-      <View style={GlobalStyles.socialContainer}>
-        <TouchableOpacity style={GlobalStyles.socialButton}>
+      {/* Social Login */}
+      <View style={styles.socialRow}>
+        <TouchableOpacity>
           <Image
             source={require("../../assets/facebook.png")}
-            style={GlobalStyles.socialIcon}
+            style={styles.socialIcon}
           />
         </TouchableOpacity>
 
-        <TouchableOpacity style={GlobalStyles.socialButton}>
+        <TouchableOpacity>
           <Image
             source={require("../../assets/google.png")}
-            style={GlobalStyles.socialIcon}
+            style={styles.socialIcon}
           />
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
