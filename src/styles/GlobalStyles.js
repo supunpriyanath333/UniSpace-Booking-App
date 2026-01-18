@@ -21,7 +21,7 @@ export default StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: "#666",
-    marginBottom: 20,
+    marginBottom: 10,
   },
 
   label: {
@@ -49,7 +49,8 @@ export default StyleSheet.create({
 
   registerText: {
     textAlign: "center",
-    marginTop: 25,
+    marginTop: 20,
+    marginBottom: 20,
   },
 
   registerLink: {
@@ -60,13 +61,15 @@ export default StyleSheet.create({
   dividerText: {
     textAlign: "center",
     marginVertical: 20,
+    marginBottom: 10,
+
     color: "#777",
   },
 
   socialContainer: {
     flexDirection: "row",
     justifyContent: "space-evenly",
-    marginTop: 25,
+    marginTop: 5,
   },
 
   socialIcon: {
