@@ -132,8 +132,4 @@ const pageStyles = StyleSheet.create({
     height: "100%",
   },
 
-  // Social buttons
-  socialButton: {
-    padding: 5,
-  },
 });

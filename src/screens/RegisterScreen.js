@@ -10,8 +10,7 @@ import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 
 import GlobalStyles from "../styles/GlobalStyles";
-import Button from "../components/Button"; // ✅ reusable button component
-
+import Button from "../components/Button"; 
 export default function RegisterScreen() {
   const navigation = useNavigation();
 
@@ -22,7 +21,6 @@ export default function RegisterScreen() {
 
   return (
     <View style={GlobalStyles.container}>
-      {/* Logo (PAGE LEVEL CSS ONLY) */}
       <View style={pageStyles.logoContainer}>
         <Image
           source={require("../../assets/logo.png")}
@@ -87,10 +85,9 @@ export default function RegisterScreen() {
         </Text>
       </Text>
 
-      {/* Sign up button (REUSABLE COMPONENT) */}
       <Button
         title="Sign up"
-        onPress={() => navigation.replace("Home")} // temporary
+        onPress={() => navigation.replace("Home")}
       />
 
       {/* Divider */}
@@ -118,7 +115,7 @@ export default function RegisterScreen() {
   );
 }
 
-/* 🔹 PAGE-LEVEL CSS (ONLY LOGO) */
+/* 🔹 PAGE-LEVEL CSS */
 const pageStyles = StyleSheet.create({
   logoContainer: {
     alignItems: "center",
