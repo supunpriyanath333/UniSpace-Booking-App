@@ -114,7 +114,7 @@ function ActionCard({ icon, title, subtitle }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFF7B2",
+    backgroundColor: "#f6f5f2",
   },
 
   header: {
@@ -152,6 +152,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 30,
     paddingHorizontal: 15,
+    borderColor: "#040404",
+    borderWidth: 1,
     height: 45,
   },
 
@@ -174,6 +176,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     padding: 15,
     borderRadius: 14,
+    borderColor: "#040404",
+    borderWidth: 1,
     marginBottom: 12,
   },
 
@@ -199,6 +203,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderRadius: 14,
     padding: 15,
+    borderColor: "#040404",
+    borderWidth: 1,
     alignItems: "center",
   },
 
