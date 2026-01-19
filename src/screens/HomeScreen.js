@@ -10,20 +10,16 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import GlobalStyles from "../styles/GlobalStyles";
-
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* 🔶 Header */}
         <View style={styles.header}>
-          <View style={styles.logoRow}>
-            <Image
-              source={require("../../assets/logo.png")}
-              style={styles.logo}
-            />
-          </View>
+          <Image
+            source={require("../../assets/logo.png")}
+            style={styles.logo}
+          />
 
           <Text style={styles.greeting}>Hii.. Supun !</Text>
           <Text style={styles.subGreeting}>
@@ -32,17 +28,9 @@ export default function HomeScreen() {
 
           {/* 🔍 Search */}
           <View style={styles.searchBox}>
-            <TextInput
-              placeholder="Search"
-              style={styles.searchInput}
-            />
-            <Ionicons name="mic" size={20} color="#000" />
-            <Ionicons
-              name="search"
-              size={20}
-              color="#000"
-              style={{ marginLeft: 10 }}
-            />
+            <TextInput placeholder="Search" style={styles.searchInput} />
+            <Ionicons name="mic" size={20} />
+            <Ionicons name="search" size={20} style={{ marginLeft: 10 }} />
           </View>
         </View>
 
@@ -84,14 +72,6 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-
-      {/* 🔶 Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <Ionicons name="home" size={24} color="red" />
-        <Ionicons name="clipboard-outline" size={24} />
-        <Ionicons name="person-outline" size={24} />
-        <Ionicons name="calendar-outline" size={24} />
-      </View>
     </View>
   );
 }
@@ -100,7 +80,7 @@ export default function HomeScreen() {
 function ActionCard({ icon, title, subtitle }) {
   return (
     <TouchableOpacity style={styles.actionCard}>
-      <Ionicons name={icon} size={32} />
+      <Ionicons name={icon} size={30} />
       <View style={{ flex: 1, marginLeft: 15 }}>
         <Text style={styles.actionTitle}>{title}</Text>
         <Text style={styles.actionSubtitle}>{subtitle}</Text>
@@ -109,6 +89,7 @@ function ActionCard({ icon, title, subtitle }) {
     </TouchableOpacity>
   );
 }
+
 
 /* 🟡 Page-level styles (Home only) */
 const styles = StyleSheet.create({

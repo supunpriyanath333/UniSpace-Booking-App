@@ -65,7 +65,7 @@ export default function LoginScreen() {
       {/* Login button */}
       <Button
         title="Log in"
-        onPress={() => navigation.replace("Home")}
+        onPress={() => navigation.replace("Main")}
       />
 
       {/* Register */}

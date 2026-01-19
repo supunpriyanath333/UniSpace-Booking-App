@@ -87,7 +87,7 @@ export default function RegisterScreen() {
 
       <Button
         title="Sign up"
-        onPress={() => navigation.replace("Home")}
+        onPress={() => navigation.replace("Main")}
       />
 
       {/* Divider */}
