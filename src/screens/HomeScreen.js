@@ -2,15 +2,18 @@ import React from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
-  TouchableOpacity,
   Image,
+  TouchableOpacity,
+  StyleSheet,
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 export default function HomeScreen() {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -21,6 +24,15 @@ export default function HomeScreen() {
             style={styles.logo}
           />
 
+          {/* Hamburger Menu */}
+          <TouchableOpacity
+            style={styles.hamburger}
+            onPress={() => alert("Menu clicked")}
+          >
+            <Ionicons name="menu-outline" size={28} color="#000" />
+          </TouchableOpacity>
+
+          {/* Welcome Text */}
           <Text style={styles.greeting}>Hii.. Supun !</Text>
           <Text style={styles.subGreeting}>
             Book your space with UniSpace..
@@ -90,7 +102,6 @@ function ActionCard({ icon, title, subtitle }) {
   );
 }
 
-
 /* 🟡 Page-level styles (Home only) */
 const styles = StyleSheet.create({
   container: {
@@ -103,16 +114,19 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-  },
-
-  logoRow: {
-    alignItems: "flex-start",
+    position: "relative",
   },
 
   logo: {
     width: 160,
     height: 60,
     resizeMode: "contain",
+  },
+
+  hamburger: {
+    position: "absolute",
+    right: 20,
+    top: 25,
   },
 
   greeting: {
