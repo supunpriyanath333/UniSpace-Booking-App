@@ -1,225 +1,144 @@
-import React from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import React, { useState } from 'react';
+import { 
+  View, Text, StyleSheet, Image, TextInput, 
+  TouchableOpacity, ScrollView, SafeAreaView, Modal 
+} from 'react-native';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import HamburgerMenu from '../components/HamburgerMenu'; // We will create this next
 
-export default function HomeScreen() {
-  const navigation = useNavigation();
+const HomeScreen = ({ navigation }) => {
+  const [menuVisible, setMenuVisible] = useState(false);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {/* HAMBURGER MENU MODAL */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={menuVisible}
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <HamburgerMenu onClose={() => setMenuVisible(false)} navigation={navigation} />
+      </Modal>
+
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* 🔶 Header */}
+        {/* YELLOW HEADER SECTION */}
         <View style={styles.header}>
-          <Image
-            source={require("../../assets/logo.png")}
-            style={styles.logo}
-          />
+          <View style={styles.topRow}>
+            <View style={styles.logoContainer}>
+              <Image 
+                source={require('../../assets/logo.png')} 
+                style={styles.logo} 
+                resizeMode="contain" 
+              />
+            </View>
+            <TouchableOpacity onPress={() => setMenuVisible(true)}>
+              <Ionicons name="menu" size={40} color="black" />
+            </TouchableOpacity>
+          </View>
 
-          {/* Hamburger Menu */}
-          <TouchableOpacity
-            style={styles.hamburger}
-            onPress={() => alert("Menu clicked")}
-          >
-            <Ionicons name="menu-outline" size={28} color="#000" />
-          </TouchableOpacity>
+          <Text style={styles.welcomeText}>Hii.. Supun !</Text>
+          <Text style={styles.subText}>Book your space with UniSpace..</Text>
 
-          {/* Welcome Text */}
-          <Text style={styles.greeting}>Hii.. Supun !</Text>
-          <Text style={styles.subGreeting}>
-            Book your space with UniSpace..
-          </Text>
-
-          {/* 🔍 Search */}
-          <View style={styles.searchBox}>
-            <TextInput placeholder="Search" style={styles.searchInput} />
-            <Ionicons name="mic" size={20} />
-            <Ionicons name="search" size={20} style={{ marginLeft: 10 }} />
+          {/* SEARCH BAR */}
+          <View style={styles.searchBar}>
+            <Ionicons name="mic-outline" size={24} color="black" />
+            <TextInput style={styles.searchInput} placeholder="" />
+            <Ionicons name="search-outline" size={24} color="black" />
           </View>
         </View>
 
-        {/* 🔶 Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        {/* QUICK ACTIONS SECTION */}
+        <View style={styles.content}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          
+          <ActionCard 
+            title="Book a Room" 
+            sub="Reserve your space now" 
+            icon={<FontAwesome5 name="home" size={24} color="black" />}
+            onPress={() => navigation.navigate('AllHalls')}
+          />
+          <ActionCard 
+            title="Check Availability" 
+            sub="View room availability instantly" 
+            icon={<Ionicons name="calendar" size={24} color="black" />}
+            onPress={() => navigation.navigate('CheckAvailability')}
+          />
+          <ActionCard 
+            title="My Bookings" 
+            sub="Manage your reservations" 
+            icon={<MaterialCommunityIcons name="clipboard-text-outline" size={24} color="black" />}
+            onPress={() => navigation.navigate('MyBookings')}
+          />
 
-        <ActionCard
-          icon="home-outline"
-          title="Book a Room"
-          subtitle="Reserve your space now"
-        />
-
-        <ActionCard
-          icon="calendar-outline"
-          title="Check Availability"
-          subtitle="View room availability instantly"
-        />
-
-        <ActionCard
-          icon="clipboard-outline"
-          title="My Bookings"
-          subtitle="Manage your reservations"
-        />
-
-        {/* 🔶 Why UniSpace */}
-        <Text style={styles.sectionTitle}>Why UniSpace?</Text>
-
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Ionicons name="business-outline" size={30} />
-            <Text style={styles.statTitle}>150+</Text>
-            <Text style={styles.statText}>Halls and Rooms</Text>
-          </View>
-
-          <View style={styles.statCard}>
-            <Ionicons name="people-outline" size={30} />
-            <Text style={styles.statTitle}>10k+</Text>
-            <Text style={styles.statText}>Total Capacity</Text>
+          {/* WHY UNISPACE SECTION */}
+          <Text style={styles.sectionTitle}>Why UniSpace?</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Image source={require('../../assets/logo.png')} style={styles.statImg} />
+              <Text style={styles.statText}>150+ Halls and Rooms</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Image source={require('../../assets/logo.png')} style={styles.statImg} />
+              <Text style={styles.statText}>10k+ Total Capacity</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+// Reusable Action Card Component
+const ActionCard = ({ title, sub, icon, onPress }) => (
+  <TouchableOpacity style={styles.card} onPress={onPress}>
+    <View style={styles.cardIcon}>{icon}</View>
+    <View style={styles.cardTextContainer}>
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={styles.cardSub}>{sub}</Text>
     </View>
-  );
-}
+    <Ionicons name="arrow-forward-outline" size={24} color="#D32F2F" />
+  </TouchableOpacity>
+);
 
-/* 🔹 Reusable Action Card */
-function ActionCard({ icon, title, subtitle }) {
-  return (
-    <TouchableOpacity style={styles.actionCard}>
-      <Ionicons name={icon} size={30} />
-      <View style={{ flex: 1, marginLeft: 15 }}>
-        <Text style={styles.actionTitle}>{title}</Text>
-        <Text style={styles.actionSubtitle}>{subtitle}</Text>
-      </View>
-      <Ionicons name="arrow-forward" size={22} color="red" />
-    </TouchableOpacity>
-  );
-}
-
-/* 🟡 Page-level styles (Home only) */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f6f5f2",
+  container: { flex: 1, backgroundColor: '#fff' },
+  header: { backgroundColor: '#F9EDB3', padding: 20, borderBottomWidth: 1, borderColor: '#ccc' },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  logo: { width: 140, height: 50 },
+  welcomeText: { fontSize: 26, fontWeight: 'bold', color: '#000' },
+  subText: { fontSize: 16, color: '#555', marginBottom: 15 },
+  searchBar: { 
+    flexDirection: 'row', 
+    backgroundColor: '#fff', 
+    borderRadius: 25, 
+    paddingHorizontal: 15, 
+    height: 45, 
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#000'
   },
-
-  header: {
-    backgroundColor: "#FFF2A6",
-    padding: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    position: "relative",
-  },
-
-  logo: {
-    width: 160,
-    height: 60,
-    resizeMode: "contain",
-  },
-
-  hamburger: {
-    position: "absolute",
-    right: 20,
-    top: 25,
-  },
-
-  greeting: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginTop: 10,
-  },
-
-  subGreeting: {
-    fontSize: 14,
-    color: "#555",
+  searchInput: { flex: 1, paddingHorizontal: 10 },
+  content: { padding: 20 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 15 },
+  card: { 
+    flexDirection: 'row', 
+    backgroundColor: '#F9EDB3', 
+    borderRadius: 15, 
+    padding: 15, 
+    alignItems: 'center', 
     marginBottom: 15,
-  },
-
-  searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 30,
-    paddingHorizontal: 15,
-    borderColor: "#040404",
     borderWidth: 1,
-    height: 45,
+    borderColor: '#ddd'
   },
-
-  searchInput: {
-    flex: 1,
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 10,
-  },
-
-  actionCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF2A6",
-    marginHorizontal: 20,
-    padding: 15,
-    borderRadius: 14,
-    borderColor: "#040404",
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  actionSubtitle: {
-    fontSize: 13,
-    color: "#555",
-  },
-
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-
-  statCard: {
-    width: "48%",
-    backgroundColor: "#FFF",
-    borderRadius: 14,
-    padding: 15,
-    borderColor: "#040404",
-    borderWidth: 1,
-    alignItems: "center",
-  },
-
-  statTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginTop: 5,
-  },
-
-  statText: {
-    fontSize: 13,
-    color: "#555",
-  },
-
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#FFF2A6",
-  },
+  cardIcon: { marginRight: 15 },
+  cardTextContainer: { flex: 1 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold' },
+  cardSub: { fontSize: 12, color: '#444' },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  statBox: { width: '48%', borderRadius: 15, overflow: 'hidden', borderWidth: 1, borderColor: '#ccc' },
+  statImg: { width: '100%', height: 100 },
+  statText: { textAlign: 'center', fontWeight: 'bold', padding: 5, fontSize: 12 }
 });
+
+export default HomeScreen;

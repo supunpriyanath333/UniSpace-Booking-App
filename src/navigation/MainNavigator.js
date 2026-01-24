@@ -1,16 +1,11 @@
-import React from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import BottomTabs from "./BottomTabs";
+import React, { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import AuthNavigator from './AuthNavigator';
+import AppNavigator from './AppNavigator'; 
 
-const Stack = createNativeStackNavigator();
+const MainNavigator = () => {
+  const { userToken } = useContext(AuthContext);
+  return userToken === null ? <AuthNavigator /> : <AppNavigator />;
+};
 
-export default function MainNavigator() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen
-        name="MainTabs"
-        component={BottomTabs}
-      />
-    </Stack.Navigator>
-  );
-}
+export default MainNavigator;

@@ -1,25 +1,39 @@
-import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import colors from '../constants/colors';
 
-export default function Button({ title, onPress }) {
+const Button = ({ title, onPress, loading, style, textStyle }) => {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.text}>{title}</Text>
+    <TouchableOpacity 
+      style={[styles.button, style]} 
+      onPress={onPress}
+      activeOpacity={0.8}
+      disabled={loading}
+    >
+      {loading ? (
+        <ActivityIndicator color={colors.white} />
+      ) : (
+        <Text style={[styles.text, textStyle]}>{title}</Text>
+      )}
     </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#d61f1f",
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: "center",
-    marginBottom: 10,
+    backgroundColor: colors.primary, // Red from your palette
+    height: 55,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 20,
   },
   text: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+    color: colors.white,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
+
+export default Button;
