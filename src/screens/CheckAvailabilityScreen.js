@@ -10,25 +10,29 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import your custom assets and components
+// Custom imports
 import { GlobalStyles } from '../styles/GlobalStyles';
 import HamburgerMenu from '../components/HamburgerMenu';
 import HallCard from '../components/HallCard';
-import Button from '../components/Button'; // Your specific Button.js
+import Button from '../components/Button'; // Using your provided Button component
 
 const CheckAvailabilityScreen = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false); // Controls UI toggle
 
-  // Mock function to simulate a search
   const handleCheck = () => {
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500);
+    // Simulating API call delay
+    setTimeout(() => {
+      setLoading(false);
+      setShowResults(true); // Toggle to results view
+    }, 1200);
   };
 
   return (
     <View style={GlobalStyles.container}>
-      {/* Seamless Status Bar: Matches Header Yellow */}
+      {/* Fixes white status bar gap */}
       <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
 
       <HamburgerMenu 
@@ -36,7 +40,7 @@ const CheckAvailabilityScreen = ({ navigation }) => {
         onClose={() => setIsMenuOpen(false)} 
       />
 
-      {/* HEADER SECTION */}
+      {/* YELLOW HEADER SECTION */}
       <View style={GlobalStyles.headerWrapper}>
         <SafeAreaView edges={['top']}>
           <View style={GlobalStyles.headerSection}>
@@ -60,7 +64,7 @@ const CheckAvailabilityScreen = ({ navigation }) => {
           Check the available lecture halls and study rooms for your desired time.
         </Text>
 
-        {/* 1. Selection Card */}
+        {/* INPUT SELECTOR CARD */}
         <View style={styles.selectorCard}>
           <View style={styles.cardHeader}>
             <Ionicons name="calendar-outline" size={24} color="black" />
@@ -68,82 +72,77 @@ const CheckAvailabilityScreen = ({ navigation }) => {
           </View>
 
           <Text style={styles.inputLabel}>Date</Text>
-          <View style={styles.dateInput}>
-            <Text style={styles.inputText}>12/01/2026</Text>
-          </View>
+          <TouchableOpacity style={styles.dateInput}>
+            <Text style={styles.inputText}>
+              {showResults ? "12/01/2026" : "DD/MM/YYYY"}
+            </Text>
+          </TouchableOpacity>
 
           <View style={styles.timeRow}>
             <View style={styles.timeContainer}>
               <Text style={styles.inputLabel}>Start Time</Text>
-              <View style={styles.timeInput}>
-                <Text style={styles.inputText}>13 : 00</Text>
-              </View>
+              <TouchableOpacity style={styles.timeInput}>
+                <Text style={styles.inputText}>{showResults ? "13 : 00" : "-- : --"}</Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.timeContainer}>
               <Text style={styles.inputLabel}>End Time</Text>
-              <View style={styles.timeInput}>
-                <Text style={styles.inputText}>15 : 00</Text>
-              </View>
+              <TouchableOpacity style={styles.timeInput}>
+                <Text style={styles.inputText}>{showResults ? "15 : 00" : "-- : --"}</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Using your specific Button component */}
           <Button 
             title="Check Availability" 
             onPress={handleCheck} 
             loading={loading}
-            style={styles.mainCheckBtn}
+            style={styles.mainBtn}
           />
         </View>
 
-        {/* 2. Results Summary Section */}
-        <View style={styles.resultsSummary}>
-          <Text style={styles.summaryText}>
-            Available Halls and Rooms on <Text style={styles.boldText}>12.01.2026</Text> 
-            {"\n"}from <Text style={styles.boldText}>13:00 - 15:00</Text>
-          </Text>
-          <Text style={styles.countText}>(20 Halls and Rooms Available)</Text>
-        </View>
+        {/* CONDITIONAL RESULTS SECTION */}
+        {showResults && (
+          <View style={styles.resultsContainer}>
+            <View style={styles.resultsSummary}>
+              <Text style={styles.summaryText}>
+                Available Halls and Rooms on <Text style={styles.boldText}>12.01.2026</Text> 
+                {"\n"}from <Text style={styles.boldText}>13:00 - 15:00</Text>
+              </Text>
+              <Text style={styles.countText}>(20 Halls and Rooms Available)</Text>
+            </View>
 
-        {/* 3. Results List using HallCard component */}
-        <HallCard 
-          name="Lecture Hall 102"
-          location="Sumangala Building - Floor 1"
-          capacity="100 Students"
-          tags={['WiFi', 'Projector', 'Audio', 'AC']}
-          isAvailable={true}
-          onBookNow={() => console.log("Booking 102")}
-          onViewDetails={() => console.log("Details 102")}
-        />
-
-        <HallCard 
-          name="Lecture Hall 103"
-          location="Sumangala Building - Floor 1"
-          capacity="50 Students"
-          tags={['Projector', 'Audio', 'AC']}
-          isAvailable={true}
-          onBookNow={() => console.log("Booking 103")}
-          onViewDetails={() => console.log("Details 103")}
-        />
+            {/* List of Available Halls using the HallCard component */}
+            <HallCard 
+              name="Lecture Hall 102"
+              location="Sumangala Building - Floor 1"
+              capacity="100 Students"
+              tags={['WiFi', 'Projector', 'Audio', 'AC']}
+              isAvailable={true}
+              onBookNow={() => {}}
+              onViewDetails={() => {}}
+            />
+            
+            <HallCard 
+              name="Lecture Hall 103"
+              location="Sumangala Building - Floor 1"
+              capacity="50 Students"
+              tags={['Projector', 'Audio', 'AC']}
+              isAvailable={true}
+              onBookNow={() => {}}
+              onViewDetails={() => {}}
+            />
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  content: { 
-    padding: 20, 
-    paddingBottom: 110 
-  },
-  introText: { 
-    fontSize: 15, 
-    fontWeight: '700', 
-    marginBottom: 20,
-    lineHeight: 22 
-  },
-  
-  // Selection Card Styling
+  content: { padding: 20, paddingBottom: 110 },
+  introText: { fontSize: 15, fontWeight: '700', marginBottom: 20, lineHeight: 22 },
   selectorCard: {
     backgroundColor: '#FFF',
     borderRadius: 20,
@@ -156,72 +155,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  cardHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 20 
-  },
-  cardHeaderTitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    marginLeft: 10 
-  },
-  inputLabel: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    marginBottom: 8 
-  },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  cardHeaderTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
+  inputLabel: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
   dateInput: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#999',
-    borderRadius: 12,
-    justifyContent: 'center',
-    paddingHorizontal: 15,
-    marginBottom: 15
+    height: 48, borderWidth: 1, borderColor: '#999', borderRadius: 12,
+    justifyContent: 'center', paddingHorizontal: 15, marginBottom: 15
   },
-  timeRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between' 
-  },
-  timeContainer: { 
-    width: '46%' 
-  },
+  timeRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  timeContainer: { width: '46%' },
   timeInput: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#999',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center'
+    height: 48, borderWidth: 1, borderColor: '#999', borderRadius: 12,
+    justifyContent: 'center', alignItems: 'center'
   },
-  inputText: { 
-    color: '#555', 
-    fontSize: 16 
-  },
-  mainCheckBtn: {
-    marginTop: 25, // Providing clear separation for the main action
-  },
-
-  // Results Section Styling
-  resultsSummary: { 
-    marginVertical: 25 
-  },
-  summaryText: { 
-    fontSize: 16, 
-    color: '#333',
-    lineHeight: 24 
-  },
-  boldText: { 
-    fontWeight: 'bold', 
-    color: '#000' 
-  },
-  countText: { 
-    fontSize: 16, 
-    color: '#666', 
-    marginTop: 10, 
-    fontWeight: '500' 
-  }
+  inputText: { color: '#888', fontSize: 16 },
+  mainBtn: { marginTop: 25 },
+  
+  // Results Section
+  resultsContainer: { marginTop: 25 },
+  resultsSummary: { marginBottom: 20 },
+  summaryText: { fontSize: 16, color: '#333', lineHeight: 24 },
+  boldText: { fontWeight: 'bold', color: '#000' },
+  countText: { fontSize: 16, color: '#666', marginTop: 8, fontWeight: '500' }
 });
 
 export default CheckAvailabilityScreen;
