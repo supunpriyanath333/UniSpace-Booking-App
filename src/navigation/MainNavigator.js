@@ -1,14 +1,23 @@
 import React, { useContext } from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../context/AuthContext';
 import AuthNavigator from './AuthNavigator';
-import BottomTabs from './BottomTabs'; // Your bottom navigation file
+import BottomTabs from './BottomTabs';
+import AllHallsScreen from '../screens/AllHallsScreen'; // Hidden from tabs
+
+const Stack = createNativeStackNavigator();
 
 const MainNavigator = () => {
   const { userToken } = useContext(AuthContext);
 
-  // If userToken is null, show Login/Register. 
-  // Once login() sets the token, this will automatically re-render and show BottomTabs.
-  return userToken == null ? <AuthNavigator /> : <BottomTabs />;
+  if (userToken == null) return <AuthNavigator />;
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainTabs" component={BottomTabs} />
+      <Stack.Screen name="AllHalls" component={AllHallsScreen} /> 
+    </Stack.Navigator>
+  );
 };
 
 export default MainNavigator;

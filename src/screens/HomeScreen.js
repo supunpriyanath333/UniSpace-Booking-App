@@ -7,54 +7,57 @@ import {
   TextInput, 
   TouchableOpacity, 
   Image,
-  SafeAreaView 
+  SafeAreaView,
+  Platform,
+  StatusBar as RNStatusBar
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import HamburgerMenu from '../components/HamburgerMenu'; // Ensure this path is correct
+import HamburgerMenu from '../components/HamburgerMenu';
 
 const HomeScreen = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <View style={styles.container}>
-      {/* The Hamburger Menu Component (Absolute Positioned) */}
       <HamburgerMenu 
         visible={isMenuOpen} 
         onClose={() => setIsMenuOpen(false)} 
       />
 
-      <StatusBar style="dark" />
+      {/* 1. Seamless Status Bar Fix: Matches the header yellow */}
+      <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
       
-      {/* 1. Yellow Header Section */}
-      <View style={styles.headerCard}>
-        <SafeAreaView>
-          <View style={styles.headerTop}>
-            <Image 
-              source={require('../../assets/logo.png')} 
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            {/* Open Menu Button */}
-            <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
-              <Ionicons name="menu" size={38} color="black" />
-            </TouchableOpacity>
-          </View>
+      {/* 2. Yellow Header Section */}
+      <View style={styles.headerWrapper}>
+        <SafeAreaView edges={['top']}>
+          <View style={styles.headerContent}>
+            <View style={styles.headerTop}>
+              <Image 
+                source={require('../../assets/logo.png')} 
+                style={styles.logo}
+                resizeMode="contain"
+              />
+              <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
+                <Ionicons name="menu" size={38} color="black" />
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.greetingContainer}>
-            <Text style={styles.greetingTitle}>Hii.. Supun !</Text>
-            <Text style={styles.greetingSub}>Book your space with UniSpace..</Text>
-          </View>
+            <View style={styles.greetingContainer}>
+              <Text style={styles.greetingTitle}>Hii.. Supun !</Text>
+              <Text style={styles.greetingSub}>Book your space with UniSpace..</Text>
+            </View>
 
-          {/* Search Bar inside Header */}
-          <View style={styles.searchBar}>
-            <TextInput 
-              placeholder="Search..." 
-              style={styles.searchInput}
-              placeholderTextColor="#666"
-            />
-            <Ionicons name="mic-outline" size={22} color="black" style={{marginRight: 10}} />
-            <Ionicons name="search-outline" size={22} color="black" />
+            {/* Search Bar inside Header */}
+            <View style={styles.searchBar}>
+              <TextInput 
+                placeholder="Search..." 
+                style={styles.searchInput}
+                placeholderTextColor="#666"
+              />
+              <Ionicons name="mic-outline" size={22} color="black" style={{marginRight: 10}} />
+              <Ionicons name="search-outline" size={22} color="black" />
+            </View>
           </View>
         </SafeAreaView>
       </View>
@@ -62,28 +65,29 @@ const HomeScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-        {/* 2. Action Buttons */}
+        {/* 3. Action Buttons with Correct Navigation */}
         <ActionCard 
           title="Book a Room" 
           subtitle="Reserve your space now" 
           icon="home-outline"
-          onPress={() => navigation.navigate('Bookings')} // Matches Tab name
+          onPress={() => navigation.navigate('AllHalls')} // Goes to All Halls Tab
         />
         
         <ActionCard 
           title="Check Availability" 
           subtitle="View room availability instantly" 
           icon="calendar-outline"
-          onPress={() => navigation.navigate('Calendar')}
+          onPress={() => navigation.navigate('CheckAvailability')} // Goes to Hidden Screen
         />
 
         <ActionCard 
           title="My Bookings" 
           subtitle="Manage your reservations" 
           icon="reader-outline"
+          onPress={() => navigation.navigate('MyBookings')} // Goes to Calendar Tab
         />
 
-        {/* 3. Why UniSpace Info Cards */}
+        {/* Why UniSpace Info Cards */}
         <Text style={styles.sectionTitle}>Why UniSpace?</Text>
         <View style={styles.infoRow}>
             <View style={styles.infoBox}>
@@ -102,7 +106,6 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-// Reusable Action Card Component
 const ActionCard = ({ title, subtitle, icon, onPress }) => (
   <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
     <View style={styles.cardIconContainer}>
@@ -121,14 +124,16 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#FFF' 
   },
-  headerCard: {
+  // Wrapper ensures the yellow color goes all the way to the top
+  headerWrapper: {
     backgroundColor: '#F9EDB3',
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
+    borderBottomWidth: 1,
+    borderColor: '#000',
+  },
+  headerContent: {
     paddingHorizontal: 20,
     paddingBottom: 25,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderWidth: 1,
-    borderColor: '#000',
   },
   headerTop: { 
     flexDirection: 'row', 
@@ -154,7 +159,7 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 16 },
   content: { 
     padding: 20, 
-    paddingBottom: 110 // Extra padding so content isn't hidden by Bottom Bar
+    paddingBottom: 110 
   },
   sectionTitle: { 
     fontSize: 20, 
