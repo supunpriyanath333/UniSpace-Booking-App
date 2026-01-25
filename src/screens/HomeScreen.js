@@ -1,144 +1,198 @@
 import React, { useState } from 'react';
 import { 
-  View, Text, StyleSheet, Image, TextInput, 
-  TouchableOpacity, ScrollView, SafeAreaView, Modal 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  TextInput, 
+  TouchableOpacity, 
+  Image,
+  SafeAreaView 
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
-import HamburgerMenu from '../components/HamburgerMenu'; // We will create this next
+import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import HamburgerMenu from '../components/HamburgerMenu'; // Ensure this path is correct
 
 const HomeScreen = ({ navigation }) => {
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* HAMBURGER MENU MODAL */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={menuVisible}
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <HamburgerMenu onClose={() => setMenuVisible(false)} navigation={navigation} />
-      </Modal>
+    <View style={styles.container}>
+      {/* The Hamburger Menu Component (Absolute Positioned) */}
+      <HamburgerMenu 
+        visible={isMenuOpen} 
+        onClose={() => setIsMenuOpen(false)} 
+      />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* YELLOW HEADER SECTION */}
-        <View style={styles.header}>
-          <View style={styles.topRow}>
-            <View style={styles.logoContainer}>
-              <Image 
-                source={require('../../assets/logo.png')} 
-                style={styles.logo} 
-                resizeMode="contain" 
-              />
-            </View>
-            <TouchableOpacity onPress={() => setMenuVisible(true)}>
-              <Ionicons name="menu" size={40} color="black" />
+      <StatusBar style="dark" />
+      
+      {/* 1. Yellow Header Section */}
+      <View style={styles.headerCard}>
+        <SafeAreaView>
+          <View style={styles.headerTop}>
+            <Image 
+              source={require('../../assets/logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            {/* Open Menu Button */}
+            <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
+              <Ionicons name="menu" size={38} color="black" />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.welcomeText}>Hii.. Supun !</Text>
-          <Text style={styles.subText}>Book your space with UniSpace..</Text>
+          <View style={styles.greetingContainer}>
+            <Text style={styles.greetingTitle}>Hii.. Supun !</Text>
+            <Text style={styles.greetingSub}>Book your space with UniSpace..</Text>
+          </View>
 
-          {/* SEARCH BAR */}
+          {/* Search Bar inside Header */}
           <View style={styles.searchBar}>
-            <Ionicons name="mic-outline" size={24} color="black" />
-            <TextInput style={styles.searchInput} placeholder="" />
-            <Ionicons name="search-outline" size={24} color="black" />
+            <TextInput 
+              placeholder="Search..." 
+              style={styles.searchInput}
+              placeholderTextColor="#666"
+            />
+            <Ionicons name="mic-outline" size={22} color="black" style={{marginRight: 10}} />
+            <Ionicons name="search-outline" size={22} color="black" />
           </View>
-        </View>
+        </SafeAreaView>
+      </View>
 
-        {/* QUICK ACTIONS SECTION */}
-        <View style={styles.content}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          
-          <ActionCard 
-            title="Book a Room" 
-            sub="Reserve your space now" 
-            icon={<FontAwesome5 name="home" size={24} color="black" />}
-            onPress={() => navigation.navigate('AllHalls')}
-          />
-          <ActionCard 
-            title="Check Availability" 
-            sub="View room availability instantly" 
-            icon={<Ionicons name="calendar" size={24} color="black" />}
-            onPress={() => navigation.navigate('CheckAvailability')}
-          />
-          <ActionCard 
-            title="My Bookings" 
-            sub="Manage your reservations" 
-            icon={<MaterialCommunityIcons name="clipboard-text-outline" size={24} color="black" />}
-            onPress={() => navigation.navigate('MyBookings')}
-          />
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-          {/* WHY UNISPACE SECTION */}
-          <Text style={styles.sectionTitle}>Why UniSpace?</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Image source={require('../../assets/logo.png')} style={styles.statImg} />
-              <Text style={styles.statText}>150+ Halls and Rooms</Text>
+        {/* 2. Action Buttons */}
+        <ActionCard 
+          title="Book a Room" 
+          subtitle="Reserve your space now" 
+          icon="home-outline"
+          onPress={() => navigation.navigate('Bookings')} // Matches Tab name
+        />
+        
+        <ActionCard 
+          title="Check Availability" 
+          subtitle="View room availability instantly" 
+          icon="calendar-outline"
+          onPress={() => navigation.navigate('Calendar')}
+        />
+
+        <ActionCard 
+          title="My Bookings" 
+          subtitle="Manage your reservations" 
+          icon="reader-outline"
+        />
+
+        {/* 3. Why UniSpace Info Cards */}
+        <Text style={styles.sectionTitle}>Why UniSpace?</Text>
+        <View style={styles.infoRow}>
+            <View style={styles.infoBox}>
+                <Ionicons name="business" size={30} color="#333" />
+                <Text style={styles.infoNumber}>150+</Text>
+                <Text style={styles.infoLabel}>Halls and Rooms</Text>
             </View>
-            <View style={styles.statBox}>
-              <Image source={require('../../assets/logo.png')} style={styles.statImg} />
-              <Text style={styles.statText}>10k+ Total Capacity</Text>
+            <View style={styles.infoBox}>
+                <Ionicons name="people" size={30} color="#333" />
+                <Text style={styles.infoNumber}>10k +</Text>
+                <Text style={styles.infoLabel}>Total Capacity</Text>
             </View>
-          </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 // Reusable Action Card Component
-const ActionCard = ({ title, sub, icon, onPress }) => (
-  <TouchableOpacity style={styles.card} onPress={onPress}>
-    <View style={styles.cardIcon}>{icon}</View>
+const ActionCard = ({ title, subtitle, icon, onPress }) => (
+  <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <View style={styles.cardIconContainer}>
+      <Ionicons name={icon} size={32} color="black" />
+    </View>
     <View style={styles.cardTextContainer}>
       <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.cardSub}>{sub}</Text>
+      <Text style={styles.cardSub}>{subtitle}</Text>
     </View>
-    <Ionicons name="arrow-forward-outline" size={24} color="#D32F2F" />
+    <Ionicons name="arrow-forward-outline" size={24} color="#DA291C" />
   </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: { backgroundColor: '#F9EDB3', padding: 20, borderBottomWidth: 1, borderColor: '#ccc' },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  logo: { width: 140, height: 50 },
-  welcomeText: { fontSize: 26, fontWeight: 'bold', color: '#000' },
-  subText: { fontSize: 16, color: '#555', marginBottom: 15 },
-  searchBar: { 
+  container: { 
+    flex: 1, 
+    backgroundColor: '#FFF' 
+  },
+  headerCard: {
+    backgroundColor: '#F9EDB3',
+    paddingHorizontal: 20,
+    paddingBottom: 25,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderWidth: 1,
+    borderColor: '#000',
+  },
+  headerTop: { 
     flexDirection: 'row', 
-    backgroundColor: '#fff', 
-    borderRadius: 25, 
-    paddingHorizontal: 15, 
-    height: 45, 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    marginTop: 10 
+  },
+  logo: { width: 120, height: 45 },
+  greetingContainer: { marginVertical: 15 },
+  greetingTitle: { fontSize: 26, fontWeight: 'bold' },
+  greetingSub: { fontSize: 14, color: '#444' },
+  searchBar: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    height: 50,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#000',
+    marginTop: 5,
+  },
+  searchInput: { flex: 1, fontSize: 16 },
+  content: { 
+    padding: 20, 
+    paddingBottom: 110 // Extra padding so content isn't hidden by Bottom Bar
+  },
+  sectionTitle: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    marginVertical: 15,
+    color: '#000'
+  },
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#F9EDB3',
+    borderRadius: 18,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 15,
+    borderWidth: 1.2,
+    borderColor: '#000',
+    elevation: 3,
+  },
+  cardIconContainer: { marginRight: 18 },
+  cardTextContainer: { flex: 1 },
+  cardTitle: { fontSize: 18, fontWeight: 'bold' },
+  cardSub: { fontSize: 13, color: '#555' },
+  infoRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between' 
+  },
+  infoBox: {
+    backgroundColor: '#F2F2F2',
+    width: '48%',
+    borderRadius: 15,
+    padding: 15,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#000'
+    borderColor: '#DDD',
+    marginBottom: 20,
   },
-  searchInput: { flex: 1, paddingHorizontal: 10 },
-  content: { padding: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 15 },
-  card: { 
-    flexDirection: 'row', 
-    backgroundColor: '#F9EDB3', 
-    borderRadius: 15, 
-    padding: 15, 
-    alignItems: 'center', 
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#ddd'
-  },
-  cardIcon: { marginRight: 15 },
-  cardTextContainer: { flex: 1 },
-  cardTitle: { fontSize: 16, fontWeight: 'bold' },
-  cardSub: { fontSize: 12, color: '#444' },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  statBox: { width: '48%', borderRadius: 15, overflow: 'hidden', borderWidth: 1, borderColor: '#ccc' },
-  statImg: { width: '100%', height: 100 },
-  statText: { textAlign: 'center', fontWeight: 'bold', padding: 5, fontSize: 12 }
+  infoNumber: { fontSize: 18, fontWeight: 'bold', marginTop: 5 },
+  infoLabel: { fontSize: 12, color: '#666' }
 });
 
 export default HomeScreen;
