@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -9,14 +9,57 @@ import {
   Image,
   SafeAreaView,
   Platform,
-  StatusBar as RNStatusBar
+  StatusBar as RNStatusBar,
+  ActivityIndicator
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import HamburgerMenu from '../components/HamburgerMenu';
 
+// Firebase Imports
+import { auth, db } from '../firebase/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+
 const HomeScreen = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [firstName, setFirstName] = useState(''); 
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          // Get the document from 'users' collection using the UID
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            console.log("Firestore Data:", data); // Debugging: Check terminal/console
+
+            // Check for 'name' field (ensure it matches your RegisterScreen field)
+            if (data.name) {
+              const nameParts = data.name.trim().split(' ');
+              setFirstName(nameParts[0]); 
+            } else {
+              setFirstName("Student");
+            }
+          } else {
+            console.log("No user document found in Firestore.");
+            setFirstName("Guest");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setFirstName("User");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -25,10 +68,8 @@ const HomeScreen = ({ navigation }) => {
         onClose={() => setIsMenuOpen(false)} 
       />
 
-      {/* 1. Seamless Status Bar Fix: Matches the header yellow */}
       <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
       
-      {/* 2. Yellow Header Section */}
       <View style={styles.headerWrapper}>
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
@@ -44,11 +85,17 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.greetingContainer}>
-              <Text style={styles.greetingTitle}>Hii.. Supun !</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.greetingTitle}>Hii.. </Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#DA291C" />
+                ) : (
+                  <Text style={styles.greetingTitle}>{firstName} !</Text>
+                )}
+              </View>
               <Text style={styles.greetingSub}>Book your space with UniSpace..</Text>
             </View>
 
-            {/* Search Bar inside Header */}
             <View style={styles.searchBar}>
               <TextInput 
                 placeholder="Search..." 
@@ -65,29 +112,27 @@ const HomeScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-        {/* 3. Action Buttons with Correct Navigation */}
         <ActionCard 
           title="Book a Room" 
           subtitle="Reserve your space now" 
           icon="home-outline"
-          onPress={() => navigation.navigate('AllHalls')} // Goes to All Halls Tab
+          onPress={() => navigation.navigate('AllHalls')} 
         />
         
         <ActionCard 
           title="Check Availability" 
           subtitle="View room availability instantly" 
           icon="calendar-outline"
-          onPress={() => navigation.navigate('CheckAvailability')} // Goes to Hidden Screen
+          onPress={() => navigation.navigate('CheckAvailability')} 
         />
 
         <ActionCard 
           title="My Bookings" 
           subtitle="Manage your reservations" 
           icon="reader-outline"
-          onPress={() => navigation.navigate('MyBookings')} // Goes to Calendar Tab
+          onPress={() => navigation.navigate('MyBookings')} 
         />
 
-        {/* Why UniSpace Info Cards */}
         <Text style={styles.sectionTitle}>Why UniSpace?</Text>
         <View style={styles.infoRow}>
             <View style={styles.infoBox}>
@@ -120,27 +165,15 @@ const ActionCard = ({ title, subtitle, icon, onPress }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#FFF' 
-  },
-  // Wrapper ensures the yellow color goes all the way to the top
+  container: { flex: 1, backgroundColor: '#FFF' },
   headerWrapper: {
     backgroundColor: '#F9EDB3',
     paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
     borderBottomWidth: 1,
     borderColor: '#000',
   },
-  headerContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 25,
-  },
-  headerTop: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center',
-    marginTop: 10 
-  },
+  headerContent: { paddingHorizontal: 20, paddingBottom: 25 },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
   logo: { width: 120, height: 45 },
   greetingContainer: { marginVertical: 15 },
   greetingTitle: { fontSize: 26, fontWeight: 'bold' },
@@ -157,16 +190,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   searchInput: { flex: 1, fontSize: 16 },
-  content: { 
-    padding: 20, 
-    paddingBottom: 110 
-  },
-  sectionTitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    marginVertical: 15,
-    color: '#000'
-  },
+  content: { padding: 20, paddingBottom: 110 },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginVertical: 15, color: '#000' },
   card: {
     flexDirection: 'row',
     backgroundColor: '#F9EDB3',
@@ -182,10 +207,7 @@ const styles = StyleSheet.create({
   cardTextContainer: { flex: 1 },
   cardTitle: { fontSize: 18, fontWeight: 'bold' },
   cardSub: { fontSize: 13, color: '#555' },
-  infoRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between' 
-  },
+  infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
   infoBox: {
     backgroundColor: '#F2F2F2',
     width: '48%',

@@ -1,11 +1,68 @@
-import React, { useContext } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import colors from '../constants/colors';
 import { AuthContext } from '../context/AuthContext';
 import Button from '../components/Button';
 
+// Firebase Imports
+import { auth, db } from '../firebase/firebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+
 const RegisterScreen = ({ navigation }) => {
   const { login } = useContext(AuthContext);
+  
+  // State Management
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    // 1. Validation
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert("Error", "Password should be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 2. Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const user = userCredential.user;
+
+      // 3. Save additional user info (Name) to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        name: name,
+        email: email.toLowerCase(),
+        createdAt: new Date().toISOString(),
+        role: 'student' // Default role
+      });
+
+      // 4. Log the user in via Context
+      login(user.stsTokenManager.accessToken);
+      
+    } catch (error) {
+      console.log(error.code);
+      let msg = "Registration failed.";
+      if (error.code === 'auth/email-already-in-use') msg = "That email is already registered.";
+      if (error.code === 'auth/invalid-email') msg = "Invalid email format.";
+      
+      Alert.alert("Registration Error", msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -17,22 +74,51 @@ const RegisterScreen = ({ navigation }) => {
       </View>
 
       <Text style={styles.label}>Name</Text>
-      <TextInput style={styles.input} placeholder="Enter your name" />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Enter your name" 
+        value={name}
+        onChangeText={setName}
+      />
 
       <Text style={styles.label}>Email</Text>
-      <TextInput style={styles.input} placeholder="Enter your email address" />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Enter your email address" 
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
 
       <Text style={styles.label}>Password</Text>
-      <TextInput style={styles.input} placeholder="Enter your password" secureTextEntry />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Enter your password" 
+        secureTextEntry 
+        value={password}
+        onChangeText={setPassword}
+      />
 
       <Text style={styles.label}>Confirm Password</Text>
-      <TextInput style={styles.input} placeholder="Confirm your password" secureTextEntry />
+      <TextInput 
+        style={styles.input} 
+        placeholder="Confirm your password" 
+        secureTextEntry 
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+      />
 
       <TouchableOpacity style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
         <Text style={styles.boldText}>Already have an account ?</Text>
       </TouchableOpacity>
 
-      <Button title="Sign up" onPress={login} style={{marginTop: 30}} />
+      <Button 
+        title="Sign up" 
+        onPress={handleRegister} 
+        loading={loading}
+        style={{marginTop: 30}} 
+      />
 
       {/* Social Sign Up Section */}
       <View style={styles.socialSection}>
