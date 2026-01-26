@@ -24,21 +24,20 @@ const HomeScreen = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [firstName, setFirstName] = useState(''); 
   const [loading, setLoading] = useState(true);
+  
+  // 1. New State for Search Query
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const user = auth.currentUser;
         if (user) {
-          // Get the document from 'users' collection using the UID
           const userRef = doc(db, "users", user.uid);
           const userSnap = await getDoc(userRef);
 
           if (userSnap.exists()) {
             const data = userSnap.data();
-            console.log("Firestore Data:", data); // Debugging: Check terminal/console
-
-            // Check for 'name' field (ensure it matches your RegisterScreen field)
             if (data.name) {
               const nameParts = data.name.trim().split(' ');
               setFirstName(nameParts[0]); 
@@ -46,7 +45,6 @@ const HomeScreen = ({ navigation }) => {
               setFirstName("Student");
             }
           } else {
-            console.log("No user document found in Firestore.");
             setFirstName("Guest");
           }
         }
@@ -60,6 +58,14 @@ const HomeScreen = ({ navigation }) => {
 
     fetchUserData();
   }, []);
+
+  // 2. New Function to handle navigation to search results
+  const handleSearch = () => {
+    if (searchQuery.trim().length > 0) {
+      navigation.navigate('AllHalls', { initialSearch: searchQuery });
+      setSearchQuery(''); // Optional: clear search after navigating
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -96,14 +102,21 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.greetingSub}>Book your space with UniSpace..</Text>
             </View>
 
+            {/* 3. Updated Search Bar with logic */}
             <View style={styles.searchBar}>
               <TextInput 
-                placeholder="Search..." 
+                placeholder="Search a hall or building..." 
                 style={styles.searchInput}
                 placeholderTextColor="#666"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                returnKeyType="search"
+                onSubmitEditing={handleSearch} // Trigger on "Enter" key
               />
               <Ionicons name="mic-outline" size={22} color="black" style={{marginRight: 10}} />
-              <Ionicons name="search-outline" size={22} color="black" />
+              <TouchableOpacity onPress={handleSearch}>
+                <Ionicons name="search-outline" size={22} color="black" />
+              </TouchableOpacity>
             </View>
           </View>
         </SafeAreaView>
@@ -151,6 +164,7 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
+// ... ActionCard and styles remain exactly the same as your code ...
 const ActionCard = ({ title, subtitle, icon, onPress }) => (
   <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
     <View style={styles.cardIconContainer}>
