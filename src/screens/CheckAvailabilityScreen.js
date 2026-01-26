@@ -5,34 +5,57 @@ import {
   StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
-  SafeAreaView 
+  SafeAreaView,
+  Alert 
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+
+// Firebase Imports
+import { db } from '../firebase/firebaseConfig'; //
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 // Custom imports
 import { GlobalStyles } from '../styles/GlobalStyles';
 import HamburgerMenu from '../components/HamburgerMenu';
 import HallCard from '../components/HallCard';
-import Button from '../components/Button'; // Using your provided Button component
+import Button from '../components/Button';
 
 const CheckAvailabilityScreen = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false); // Controls UI toggle
+  const [showResults, setShowResults] = useState(false);
+  const [availableHalls, setAvailableHalls] = useState([]); // Array to store Firestore data
 
-  const handleCheck = () => {
+  const handleCheck = async () => {
     setLoading(true);
-    // Simulating API call delay
-    setTimeout(() => {
+    try {
+      // 1. Reference your 'halls' collection
+      const hallsRef = collection(db, 'halls');
+      
+      // 2. Query for available halls only
+      const q = query(hallsRef, where('isAvailable', '==', true));
+      
+      const querySnapshot = await getDocs(q);
+      
+      // 3. Map Firestore documents to a local array
+      const results = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      setAvailableHalls(results);
+      setShowResults(true);
+    } catch (error) {
+      console.error("Firebase Error:", error);
+      Alert.alert("Error", "Could not fetch hall availability. Please check your database rules.");
+    } finally {
       setLoading(false);
-      setShowResults(true); // Toggle to results view
-    }, 1200);
+    }
   };
 
   return (
     <View style={GlobalStyles.container}>
-      {/* Fixes white status bar gap */}
       <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
 
       <HamburgerMenu 
@@ -110,29 +133,26 @@ const CheckAvailabilityScreen = ({ navigation }) => {
                 Available Halls and Rooms on <Text style={styles.boldText}>12.01.2026</Text> 
                 {"\n"}from <Text style={styles.boldText}>13:00 - 15:00</Text>
               </Text>
-              <Text style={styles.countText}>(20 Halls and Rooms Available)</Text>
+              <Text style={styles.countText}>({availableHalls.length} Halls and Rooms Available)</Text>
             </View>
 
-            {/* List of Available Halls using the HallCard component */}
-            <HallCard 
-              name="Lecture Hall 102"
-              location="Sumangala Building - Floor 1"
-              capacity="100 Students"
-              tags={['WiFi', 'Projector', 'Audio', 'AC']}
-              isAvailable={true}
-              onBookNow={() => {}}
-              onViewDetails={() => {}}
-            />
-            
-            <HallCard 
-              name="Lecture Hall 103"
-              location="Sumangala Building - Floor 1"
-              capacity="50 Students"
-              tags={['Projector', 'Audio', 'AC']}
-              isAvailable={true}
-              onBookNow={() => {}}
-              onViewDetails={() => {}}
-            />
+            {/* List of Available Halls using the HallCard component with Dynamic Data */}
+            {availableHalls.map((hall) => (
+              <HallCard 
+                key={hall.id}
+                name={hall.name}               // Matches 'name' field
+                location={hall.building}       // Matches 'building' field
+                capacity={hall.capacity}       // Matches 'capacity' field
+                tags={hall.tags || []}         // Matches 'tags' array
+                isAvailable={hall.isAvailable} // Matches 'isAvailable' boolean
+                onBookNow={() => navigation.navigate('BookingForm', { hall })}
+                onViewDetails={() => {}}
+              />
+            ))}
+
+            {availableHalls.length === 0 && (
+              <Text style={styles.noResults}>No halls found for selected time.</Text>
+            )}
           </View>
         )}
       </ScrollView>
@@ -150,10 +170,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BBB',
     elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
   cardHeaderTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
@@ -170,13 +186,12 @@ const styles = StyleSheet.create({
   },
   inputText: { color: '#888', fontSize: 16 },
   mainBtn: { marginTop: 25 },
-  
-  // Results Section
   resultsContainer: { marginTop: 25 },
   resultsSummary: { marginBottom: 20 },
   summaryText: { fontSize: 16, color: '#333', lineHeight: 24 },
   boldText: { fontWeight: 'bold', color: '#000' },
-  countText: { fontSize: 16, color: '#666', marginTop: 8, fontWeight: '500' }
+  countText: { fontSize: 16, color: '#666', marginTop: 8, fontWeight: '500' },
+  noResults: { textAlign: 'center', marginTop: 30, color: '#999', fontSize: 16 }
 });
 
 export default CheckAvailabilityScreen;
