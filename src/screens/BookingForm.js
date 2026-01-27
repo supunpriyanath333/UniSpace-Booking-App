@@ -1,249 +1,268 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  TextInput, 
-  Modal, 
-  Alert 
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, 
+  TextInput, Modal, Alert 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-// Firebase & Global Imports
+// Firebase Imports
 import { db, auth } from '../firebase/firebaseConfig';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+
+// Custom Components
 import { GlobalStyles } from '../styles/GlobalStyles';
 import HamburgerMenu from '../components/HamburgerMenu';
 import Button from '../components/Button';
 
 const BookingForm = ({ route, navigation }) => {
-  const { hall } = route.params; 
-  
-  // UI State
+  const hall = route.params?.hall;
+
+  // Form States
+  const [date, setDate] = useState(new Date());
+  const [startTime, setStartTime] = useState(null); // Changed to null for placeholder logic
+  const [endTime, setEndTime] = useState(null);     // Changed to null for placeholder logic
+  const [eventName, setEventName] = useState('');
+  const [lecturerName, setLecturerName] = useState('');
+  const [capacity, setCapacity] = useState('');
+  const [contact, setContact] = useState('');
+
+  // UI States
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [showPicker, setShowPicker] = useState({ mode: 'date', visible: false });
   const [showBookedModal, setShowBookedModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [existingBookings, setExistingBookings] = useState([]);
 
-  // Form State
-  const [form, setForm] = useState({
-    date: '', startTime: '', endTime: '',
-    eventName: '', lecturerName: '', capacity: '', contact: ''
-  });
+  useEffect(() => { 
+    if (hall?.id) fetchHallBookings(); 
+  }, [hall]);
+
+  const fetchHallBookings = async () => {
+    try {
+      const q = query(collection(db, 'bookings'), where('hallId', '==', hall.id || 'JClKB5tOvypOHY6ole'));
+      const querySnapshot = await getDocs(q);
+      const bookedData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setExistingBookings(bookedData);
+    } catch (e) { console.error("Error fetching bookings:", e); }
+  };
+
+  const formatDate = (d) => `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+  
+  // UPDATED: Logic for 12-hour AM/PM formatting
+  const formatTimeAMPM = (t) => {
+    if (!t) return "-- : --";
+    return t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
 
   const handleBooking = async () => {
-    if (!form.date || !form.eventName) {
-      Alert.alert("Error", "Please fill in the required fields.");
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Error", "Please log in first.");
       return;
     }
-    
+
+    if (!startTime || !endTime) {
+        Alert.alert("Error", "Please select start and end times.");
+        return;
+    }
+
     setLoading(true);
     try {
       await addDoc(collection(db, 'bookings'), {
-        ...form,
-        hallId: hall.id,
-        hallName: hall.name,
-        location: hall.building,
-        userId: auth.currentUser?.uid || 'guest',
-        status: 'Pending',
-        timestamp: serverTimestamp()
+        userId: user.uid, 
+        hallId: hall?.id || 'JClKB5tOvypOHY6ole',
+        hallName: hall?.name || 'Lecture Hall 102',
+        location: hall?.building || 'Sumangala Building - Floor 1',
+        date: formatDate(date),
+        startTime: formatTimeAMPM(startTime),
+        endTime: formatTimeAMPM(endTime),
+        eventName, 
+        lecturerName, 
+        capacity, 
+        contact,
+        status: 'Pending', 
+        createdAt: serverTimestamp()
       });
       setShowSuccessModal(true);
     } catch (e) {
-      console.error(e);
-      Alert.alert("Error", "Booking failed. Please check your connection.");
-    } finally {
-      setLoading(false);
+      Alert.alert("Error", "Booking failed.");
     }
+    setLoading(false);
   };
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
+      <StatusBar style="dark" backgroundColor="#F9EDB3" />
+      <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
-      {/* 1. Hamburger Menu Integration */}
-      <HamburgerMenu 
-        visible={isMenuOpen} 
-        onClose={() => setIsMenuOpen(false)} 
-      />
-
-      {/* 2. Global Yellow Header Section */}
       <View style={GlobalStyles.headerWrapper}>
-        <SafeAreaView edges={['top']}>
-          <View style={GlobalStyles.headerSection}>
-            <View style={GlobalStyles.headerTopRow}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={30} color="black" />
-              </TouchableOpacity>
-              
-              <Text style={GlobalStyles.headerTitle}>Book Lecture Hall</Text>
-              
-              <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
-                <Ionicons name="menu" size={38} color="black" />
-              </TouchableOpacity>
-            </View>
+        <SafeAreaView edges={['top']} style={GlobalStyles.headerSection}>
+          <View style={GlobalStyles.headerTopRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={30} color="black" />
+            </TouchableOpacity>
+            <Text style={GlobalStyles.headerTitle}>Book Lecture Hall</Text>
+            <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
+              <Ionicons name="menu" size={38} color="black" />
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Hall Info Card */}
+      <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
-          <Text style={styles.hallName}>{hall.name}</Text>
-          <View style={styles.infoRow}>
+          <Text style={styles.hallTitle}>{hall?.name || "Lecture Hall 102"}</Text>
+          <View style={styles.iconRow}>
             <Ionicons name="location-outline" size={16} color="#666" />
-            <Text style={styles.hallSub}> {hall.building}</Text>
+            <Text style={styles.infoText}> {hall?.building || "Sumangala Building - Floor 1"}</Text>
           </View>
-          <View style={styles.infoRow}>
+          <View style={styles.iconRow}>
             <Ionicons name="people-outline" size={16} color="#666" />
-            <Text style={styles.hallSub}> Capacity - {hall.capacity}</Text>
+            <Text style={styles.infoText}> Capacity - {hall?.capacity || "100"} Students</Text>
           </View>
         </View>
 
-        {/* Date & Time Selection */}
         <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="calendar-outline" size={24} color="black" />
+          <View style={styles.sectionHeader}>
+            <Ionicons name="calendar-outline" size={20} color="black" />
             <Text style={styles.sectionTitle}> Date and Time</Text>
           </View>
-
-          <Text style={styles.label}>Date</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder="DD/MM/YYYY" 
-            placeholderTextColor="#999"
-            onChangeText={(t) => setForm({...form, date: t})} 
-          />
           
-          <View style={styles.row}>
-            <View style={{ flex: 1, marginRight: 10 }}>
+          <Text style={styles.label}>Date</Text>
+          <TouchableOpacity style={styles.inputBox} onPress={() => setShowPicker({ mode: 'date', visible: true })}>
+            <Text style={styles.placeholderText}>{formatDate(date)}</Text>
+          </TouchableOpacity>
+
+          <View style={styles.timeRow}>
+            <View style={{flex: 1}}>
               <Text style={styles.label}>Start Time</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="-- : --" 
-                placeholderTextColor="#999"
-                onChangeText={(t) => setForm({...form, startTime: t})} 
-              />
+              <TouchableOpacity style={styles.inputBox} onPress={() => setShowPicker({ mode: 'start', visible: true })}>
+                {/* Updated to show selected AM/PM time */}
+                <Text style={styles.placeholderText}>{formatTimeAMPM(startTime)}</Text>
+              </TouchableOpacity>
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={{flex: 1, marginLeft: 15}}>
               <Text style={styles.label}>End Time</Text>
-              <TextInput 
-                style={styles.input} 
-                placeholder="-- : --" 
-                placeholderTextColor="#999"
-                onChangeText={(t) => setForm({...form, endTime: t})} 
-              />
+              <TouchableOpacity style={styles.inputBox} onPress={() => setShowPicker({ mode: 'end', visible: true })}>
+                {/* Updated to show selected AM/PM time */}
+                <Text style={styles.placeholderText}>{formatTimeAMPM(endTime)}</Text>
+              </TouchableOpacity>
             </View>
           </View>
           
           <TouchableOpacity onPress={() => setShowBookedModal(true)}>
-            <Text style={styles.linkText}>View Currently Booked Details</Text>
+            <Text style={styles.redLink}>View Currently Booked Details</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Purpose Section */}
         <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="reader-outline" size={24} color="black" />
+          <View style={styles.sectionHeader}>
+            <Ionicons name="reader-outline" size={20} color="black" />
             <Text style={styles.sectionTitle}> Purpose</Text>
           </View>
-
           <Text style={styles.label}>Lecture/Event Name</Text>
-          <TextInput style={styles.input} placeholder="Ex : ICT 3243 UX & UI" onChangeText={(t) => setForm({...form, eventName: t})} />
-          
+          <TextInput style={styles.inputBox} placeholder="Ex : ICT 3243 UX & UI" onChangeText={setEventName} />
           <Text style={styles.label}>Lecturer Name</Text>
-          <TextInput style={styles.input} placeholder="Ex : Dr. Sapumal Perera" onChangeText={(t) => setForm({...form, lecturerName: t})} />
-          
+          <TextInput style={styles.inputBox} placeholder="Ex : Dr. Sapumal Perera" onChangeText={setLecturerName} />
           <Text style={styles.label}>Capacity</Text>
-          <TextInput style={styles.input} placeholder="Ex : 30" keyboardType="numeric" onChangeText={(t) => setForm({...form, capacity: t})} />
-          
+          <TextInput style={styles.inputBox} placeholder="Ex : 30" keyboardType="numeric" onChangeText={setCapacity} />
           <Text style={styles.label}>Contact Number</Text>
-          <TextInput style={styles.input} placeholder="Ex : 0771234567" keyboardType="phone-pad" onChangeText={(t) => setForm({...form, contact: t})} />
+          <TextInput style={styles.inputBox} placeholder="Ex : 0771234567" keyboardType="phone-pad" onChangeText={setContact} />
         </View>
 
-        <Button title="Book Now" onPress={handleBooking} loading={loading} style={styles.bookBtn} />
+        <Button title="Book Now" onPress={handleBooking} loading={loading} style={styles.bookNowBtn} />
       </ScrollView>
 
-      {/* POPUP 1: Currently Booked */}
-      <Modal visible={showBookedModal} transparent animationType="fade" onRequestClose={() => setShowBookedModal(false)}>
+      {/* MODALS REMAIN THE SAME AS PREVIOUS CODE */}
+      <Modal visible={showBookedModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.bookedModal}>
-            <Text style={styles.modalHeader}>Currently Booked Details For <Text style={{color: '#555'}}>{hall.name}</Text></Text>
-            
+          <View style={styles.tableModal}>
+            <Text style={styles.modalHeaderTitle}>Currently Booked Details For <Text style={{color: '#888'}}>{hall?.name || "Lecture Hall xxxx"}</Text></Text>
             <View style={styles.table}>
-              <View style={[styles.tableRow, styles.tableHeaderRow]}>
+              <View style={styles.tableHeader}>
                 <Text style={styles.tableHeaderText}>Date</Text>
                 <Text style={styles.tableHeaderText}>Time</Text>
               </View>
-              {/* Dummy Data for Demo */}
-              <View style={styles.tableRow}><Text>24/12/2025</Text><Text>13:00 - 15:00</Text></View>
-              <View style={styles.tableRow}><Text>24/12/2025</Text><Text>15:00 - 17:00</Text></View>
+              {existingBookings.map((b, i) => (
+                <View key={i} style={styles.tableRow}>
+                  <Text style={styles.cell}>{b.date}</Text>
+                  <Text style={styles.cell}>{b.startTime} - {b.endTime}</Text>
+                </View>
+              ))}
             </View>
-
-            <Text style={styles.noteText}>
-              Note: If you want to book this hall, please choose a time without these reserved times.
-            </Text>
-            
-            <Button title="OK" onPress={() => setShowBookedModal(false)} style={{marginTop: 15}} />
+            <Text style={styles.noteLabel}>Note</Text>
+            <Text style={styles.noteText}>If you want to book this hall, please choose a time without these reserved times.</Text>
+            <TouchableOpacity style={styles.redOkBtn} onPress={() => setShowBookedModal(false)}>
+              <Text style={styles.okBtnText}>OK</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* POPUP 2: Success */}
       <Modal visible={showSuccessModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.successModal}>
-            <Text style={styles.successText}>
+            <Text style={styles.successMsgText}>
               Your booking request has been successfully created. It will be approved shortly. Check your "My Bookings" details.
             </Text>
-            <Button 
-              title="OK" 
-              onPress={() => { setShowSuccessModal(false); navigation.navigate('MainTabs'); }} 
-              style={{marginTop: 20, width: '80%'}} 
-            />
+            <TouchableOpacity style={styles.redOkBtn} onPress={() => { setShowSuccessModal(false); navigation.navigate('MainTabs'); }}>
+              <Text style={styles.okBtnText}>OK</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
+
+      {showPicker.visible && (
+        <DateTimePicker 
+          value={showPicker.mode === 'date' ? date : (showPicker.mode === 'start' ? (startTime || new Date()) : (endTime || new Date()))} 
+          mode={showPicker.mode === 'date' ? 'date' : 'time'} 
+          is24Hour={false} // Set to false to show AM/PM in the picker itself
+          onChange={(e, val) => {
+            setShowPicker({...showPicker, visible: false});
+            if(val) {
+              if(showPicker.mode === 'date') setDate(val);
+              else if(showPicker.mode === 'start') setStartTime(val);
+              else setEndTime(val);
+            }
+          }} 
+        />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: { padding: 20, paddingBottom: 50 },
-  card: { backgroundColor: 'white', borderRadius: 20, padding: 20, marginBottom: 20, elevation: 3, shadowOpacity: 0.1 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
-  
-  // Text Styles
-  hallName: { fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
-  hallSub: { color: '#555', fontSize: 15, marginLeft: 5 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 8 },
-  label: { fontWeight: 'bold', marginTop: 12, marginBottom: 6, fontSize: 15 },
-  
-  // Input Styles
-  input: { borderWidth: 1, borderColor: '#bbb', borderRadius: 12, padding: 12, backgroundColor: '#fff', fontSize: 16 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  linkText: { color: '#DA291C', textDecorationLine: 'underline', textAlign: 'center', marginTop: 20, fontWeight: '600' },
-  bookBtn: { marginTop: 10 },
-
-  // Modal Styles
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
-  bookedModal: { backgroundColor: 'white', width: '85%', borderRadius: 15, padding: 20, elevation: 5 },
-  modalHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
-  
-  table: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, overflow: 'hidden' },
-  tableRow: { flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  tableHeaderRow: { backgroundColor: '#ddd' },
-  tableHeaderText: { fontWeight: 'bold', fontSize: 15 },
-  
-  noteText: { color: '#DA291C', marginTop: 15, fontSize: 13, textAlign: 'center' },
-  
-  successModal: { backgroundColor: 'white', width: '85%', borderRadius: 15, padding: 25, alignItems: 'center', elevation: 5 },
-  successText: { textAlign: 'center', fontSize: 16, fontWeight: '600', lineHeight: 24 }
+  scrollBody: { padding: 15, paddingBottom: 40 },
+  card: { backgroundColor: 'white', borderRadius: 15, padding: 15, marginBottom: 20, elevation: 5, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5 },
+  hallTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+  iconRow: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
+  infoText: { color: '#666', fontSize: 13 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold' },
+  label: { fontSize: 14, fontWeight: 'bold', marginBottom: 5 },
+  inputBox: { borderWidth: 1, borderColor: '#CCC', borderRadius: 10, padding: 10, marginBottom: 15 },
+  placeholderText: { color: '#888', textAlign: 'center' },
+  timeRow: { flexDirection: 'row' },
+  redLink: { color: 'red', textAlign: 'center', textDecorationLine: 'underline', fontSize: 13, fontWeight: 'bold' },
+  bookNowBtn: { backgroundColor: '#D32F2F', borderRadius: 10, marginTop: 10 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  tableModal: { backgroundColor: 'white', width: '90%', borderRadius: 20, padding: 20 },
+  modalHeaderTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 20 },
+  table: { borderWidth: 1, borderColor: 'black' },
+  tableHeader: { flexDirection: 'row', backgroundColor: '#D1D1D1', borderBottomWidth: 1 },
+  tableHeaderText: { flex: 1, padding: 8, fontWeight: 'bold', textAlign: 'center', borderRightWidth: 1 },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1 },
+  cell: { flex: 1, padding: 8, textAlign: 'center', borderRightWidth: 1, fontSize: 12 },
+  noteLabel: { fontWeight: 'bold', marginTop: 15 },
+  noteText: { color: 'red', fontSize: 12, marginTop: 5 },
+  redOkBtn: { backgroundColor: '#D32F2F', borderRadius: 10, padding: 12, marginTop: 20, width: '80%', alignSelf: 'center' },
+  okBtnText: { color: 'white', textAlign: 'center', fontWeight: 'bold', fontSize: 16 },
+  successModal: { backgroundColor: 'white', width: '85%', borderRadius: 20, padding: 25 },
+  successMsgText: { textAlign: 'center', fontWeight: 'bold', fontSize: 15, lineHeight: 22 }
 });
 
 export default BookingForm;
