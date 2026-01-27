@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, 
   ActivityIndicator, Alert 
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 
@@ -14,7 +13,7 @@ import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/f
 // Custom Components
 import { GlobalStyles } from '../styles/GlobalStyles';
 import HamburgerMenu from '../components/HamburgerMenu';
-import BookingCard from '../components/BookingCard'; // Using your component
+import BookingCard from '../components/BookingCard';
 
 const MyBookingsScreen = ({ navigation }) => {
   const [activeFilter, setActiveFilter] = useState('All');
@@ -68,28 +67,33 @@ const MyBookingsScreen = ({ navigation }) => {
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" backgroundColor="#F9EDB3" />
+      <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
       <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
-      {/* GLOBAL HEADER - Logic from your other pages */}
+      {/* HEADER SECTION - Using GlobalStyles exactly like Profile/CheckAvailability */}
       <View style={GlobalStyles.headerWrapper}>
-        <SafeAreaView edges={['top']} style={GlobalStyles.headerSection}>
+        <View style={GlobalStyles.headerSection}>
           <View style={GlobalStyles.headerTopRow}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Ionicons name="arrow-back" size={30} color="black" />
             </TouchableOpacity>
+            
             <Text style={GlobalStyles.headerTitle}>My Bookings</Text>
+            
             <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
               <Ionicons name="menu" size={38} color="black" />
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
+        </View>
       </View>
 
       {/* FILTER ROW */}
       <View style={styles.filterRow}>
         {['All', 'Pending', 'Approved'].map((label) => {
-          const count = label === 'All' ? bookings.length : bookings.filter(b => b.status === label).length;
+          const count = label === 'All' 
+            ? bookings.length 
+            : bookings.filter(b => b.status === label).length;
+            
           return (
             <TouchableOpacity 
               key={label}
@@ -104,7 +108,12 @@ const MyBookingsScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
         {loading ? (
-          <ActivityIndicator size="large" color="#D32F2F" style={{ marginTop: 50 }} />
+          <ActivityIndicator size="large" color="#DA291C" style={{ marginTop: 50 }} />
+        ) : filteredBookings.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="calendar-outline" size={80} color="#DDD" />
+            <Text style={styles.emptyText}>No {activeFilter !== 'All' ? activeFilter : ''} bookings found.</Text>
+          </View>
         ) : (
           filteredBookings.map((item) => (
             <BookingCard 
@@ -128,20 +137,44 @@ const MyBookingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   filterRow: { 
     flexDirection: 'row', 
-    padding: 15, 
+    paddingVertical: 15,
+    paddingHorizontal: 10,
     justifyContent: 'space-around', 
-    backgroundColor: '#FFF' 
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderColor: '#EEE'
   },
   filterBtn: { 
-    paddingVertical: 6, 
-    paddingHorizontal: 15, 
+    paddingVertical: 8, 
+    paddingHorizontal: 16, 
     borderRadius: 20, 
     borderWidth: 1, 
-    borderColor: '#000' 
+    borderColor: '#CCC' 
   },
-  activeFilterBtn: { backgroundColor: '#F9EDB3' },
-  filterText: { fontWeight: 'bold', fontSize: 14 },
-  scrollBody: { paddingHorizontal: 15, paddingBottom: 30 }
+  activeFilterBtn: { 
+    backgroundColor: '#F9EDB3',
+    borderColor: '#000'
+  },
+  filterText: { 
+    fontWeight: 'bold', 
+    fontSize: 13,
+    color: '#000'
+  },
+  scrollBody: { 
+    paddingHorizontal: 15, 
+    paddingTop: 15,
+    paddingBottom: 110 
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 100,
+  },
+  emptyText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '600'
+  }
 });
 
 export default MyBookingsScreen;
