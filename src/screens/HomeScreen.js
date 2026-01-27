@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TextInput, 
-  TouchableOpacity, 
-  Image,
-  SafeAreaView,
-  Platform,
-  StatusBar as RNStatusBar,
-  ActivityIndicator
+  View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, 
+  Image, SafeAreaView, Platform, StatusBar as RNStatusBar, 
+  ActivityIndicator, ImageBackground 
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,8 +16,6 @@ const HomeScreen = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [firstName, setFirstName] = useState(''); 
   const [loading, setLoading] = useState(true);
-  
-  // 1. New State for Search Query
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -55,36 +45,26 @@ const HomeScreen = ({ navigation }) => {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, []);
 
-  // 2. New Function to handle navigation to search results
   const handleSearch = () => {
     if (searchQuery.trim().length > 0) {
       navigation.navigate('AllHalls', { initialSearch: searchQuery });
-      setSearchQuery(''); // Optional: clear search after navigating
+      setSearchQuery('');
     }
   };
 
   return (
     <View style={styles.container}>
-      <HamburgerMenu 
-        visible={isMenuOpen} 
-        onClose={() => setIsMenuOpen(false)} 
-      />
-
+      <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
       
       <View style={styles.headerWrapper}>
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
             <View style={styles.headerTop}>
-              <Image 
-                source={require('../../assets/logo.png')} 
-                style={styles.logo}
-                resizeMode="contain"
-              />
+              <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
               <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
                 <Ionicons name="menu" size={38} color="black" />
               </TouchableOpacity>
@@ -102,7 +82,6 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.greetingSub}>Book your space with UniSpace..</Text>
             </View>
 
-            {/* 3. Updated Search Bar with logic */}
             <View style={styles.searchBar}>
               <TextInput 
                 placeholder="Search a hall or building..." 
@@ -111,7 +90,7 @@ const HomeScreen = ({ navigation }) => {
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 returnKeyType="search"
-                onSubmitEditing={handleSearch} // Trigger on "Enter" key
+                onSubmitEditing={handleSearch}
               />
               <Ionicons name="mic-outline" size={22} color="black" style={{marginRight: 10}} />
               <TouchableOpacity onPress={handleSearch}>
@@ -129,6 +108,7 @@ const HomeScreen = ({ navigation }) => {
           title="Book a Room" 
           subtitle="Reserve your space now" 
           icon="home-outline"
+          image={require('../../assets/hall_bg.jpg')} // Ensure these assets exist
           onPress={() => navigation.navigate('AllHalls')} 
         />
         
@@ -136,6 +116,7 @@ const HomeScreen = ({ navigation }) => {
           title="Check Availability" 
           subtitle="View room availability instantly" 
           icon="calendar-outline"
+          image={require('../../assets/calendar_bg.jpg')}
           onPress={() => navigation.navigate('CheckAvailability')} 
         />
 
@@ -143,39 +124,63 @@ const HomeScreen = ({ navigation }) => {
           title="My Bookings" 
           subtitle="Manage your reservations" 
           icon="reader-outline"
+          image={require('../../assets/booking_bg.jpg')}
           onPress={() => navigation.navigate('MyBookings')} 
         />
 
         <Text style={styles.sectionTitle}>Why UniSpace?</Text>
         <View style={styles.infoRow}>
-            <View style={styles.infoBox}>
-                <Ionicons name="business" size={30} color="#333" />
-                <Text style={styles.infoNumber}>150+</Text>
-                <Text style={styles.infoLabel}>Halls and Rooms</Text>
-            </View>
-            <View style={styles.infoBox}>
-                <Ionicons name="people" size={30} color="#333" />
-                <Text style={styles.infoNumber}>10k +</Text>
-                <Text style={styles.infoLabel}>Total Capacity</Text>
-            </View>
+            <InfoBox 
+                icon="business" 
+                number="150+" 
+                label="Halls and Rooms" 
+                image={require('../../assets/building_bg.jpg')} 
+            />
+            <InfoBox 
+                icon="people" 
+                number="10k +" 
+                label="Total Capacity" 
+                image={require('../../assets/students_bg.jpg')} 
+            />
         </View>
       </ScrollView>
     </View>
   );
 };
 
-// ... ActionCard and styles remain exactly the same as your code ...
-const ActionCard = ({ title, subtitle, icon, onPress }) => (
-  <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-    <View style={styles.cardIconContainer}>
-      <Ionicons name={icon} size={32} color="black" />
-    </View>
-    <View style={styles.cardTextContainer}>
-      <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.cardSub}>{subtitle}</Text>
-    </View>
-    <Ionicons name="arrow-forward-outline" size={24} color="#DA291C" />
+const ActionCard = ({ title, subtitle, icon, image, onPress }) => (
+  <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
+    <ImageBackground 
+      source={image} 
+      style={styles.cardBg} 
+      imageStyle={{ opacity: 0.2, borderRadius: 18 }}
+    >
+      <View style={styles.cardContentInner}>
+        <View style={styles.cardIconContainer}>
+          <Ionicons name={icon} size={32} color="black" />
+        </View>
+        <View style={styles.cardTextContainer}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          <Text style={styles.cardSub}>{subtitle}</Text>
+        </View>
+        <Ionicons name="arrow-forward-outline" size={24} color="#DA291C" />
+      </View>
+    </ImageBackground>
   </TouchableOpacity>
+);
+
+const InfoBox = ({ icon, number, label, image }) => (
+    <View style={styles.infoBox}>
+        <ImageBackground 
+            source={image} 
+            style={styles.infoBg} 
+            imageStyle={{ opacity: 0.2, borderRadius: 15 }}
+        >
+            <Ionicons name={icon} size={30} color="#333" />
+            <Text style={styles.infoNumber}>{number}</Text>
+            <Text style={styles.infoLabel}>{label}</Text>
+        </ImageBackground>
+    </View>
 );
 
 const styles = StyleSheet.create({
@@ -183,7 +188,10 @@ const styles = StyleSheet.create({
   headerWrapper: {
     backgroundColor: '#F9EDB3',
     paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0,
-    borderBottomWidth: 1,
+    borderWidth: 0.5,
+    borderBottomWidth: 0.5,
+    borderBottomRightRadius: 15,
+    borderBottomLeftRadius: 15,
     borderColor: '#000',
   },
   headerContent: { paddingHorizontal: 20, paddingBottom: 25 },
@@ -206,34 +214,46 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 16 },
   content: { padding: 20, paddingBottom: 110 },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', marginVertical: 15, color: '#000' },
+  
+  // Card Styles with ImageBackground
   card: {
-    flexDirection: 'row',
     backgroundColor: '#F9EDB3',
     borderRadius: 18,
-    padding: 20,
-    alignItems: 'center',
     marginBottom: 15,
-    borderWidth: 1.2,
+    borderWidth: 1,
     borderColor: '#000',
     elevation: 3,
+    overflow: 'hidden',
+  },
+  cardBg: { width: '100%' },
+  cardContentInner: {
+    flexDirection: 'row',
+    padding: 20,
+    alignItems: 'center',
   },
   cardIconContainer: { marginRight: 18 },
   cardTextContainer: { flex: 1 },
   cardTitle: { fontSize: 18, fontWeight: 'bold' },
-  cardSub: { fontSize: 13, color: '#555' },
+  cardSub: { fontSize: 14, color: '#373434', fontWeight:'bold' },
+
+  // Info Box Styles with ImageBackground
   infoRow: { flexDirection: 'row', justifyContent: 'space-between' },
   infoBox: {
     backgroundColor: '#F2F2F2',
     width: '48%',
     borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#0b0a0a',
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  infoBg: {
     padding: 15,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#DDD',
-    marginBottom: 20,
+    width: '100%',
   },
   infoNumber: { fontSize: 18, fontWeight: 'bold', marginTop: 5 },
-  infoLabel: { fontSize: 12, color: '#666' }
+  infoLabel: { fontSize: 14, color: '#252323', fontWeight: 'bold' }
 });
 
 export default HomeScreen;
