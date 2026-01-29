@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   },
   headerContent: { paddingHorizontal: 20, paddingBottom: 25 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-  logo: { width: 120, height: 45 },
+  logo: { width: 200, height: 100 },
   greetingContainer: { marginVertical: 15 },
   greetingTitle: { fontSize: 26, fontWeight: 'bold' },
   greetingSub: { fontSize: 14, color: '#444' },
