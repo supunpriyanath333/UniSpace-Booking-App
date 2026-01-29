@@ -7,8 +7,11 @@ import {
   TextInput, 
   TouchableOpacity, 
   SafeAreaView,
-  ActivityIndicator 
+  ActivityIndicator,
+  Platform,
+  StatusBar as RNStatusBar
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
 // Firebase
@@ -26,9 +29,8 @@ const AllHallsScreen = ({ route, navigation }) => {
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // 1. Fetch ONLY available halls from Firestore
+  // 1. Fetch available halls from Firestore
   useEffect(() => {
-    // This query tells Firestore: "Only send me documents where isAvailable is true"
     const q = query(
       collection(db, 'halls'), 
       where('isAvailable', '==', true) 
@@ -40,7 +42,7 @@ const AllHallsScreen = ({ route, navigation }) => {
         ...doc.data()
       }));
 
-      // Extra Safety: Double check that strings like "false" didn't sneak in
+      // Extra Safety Filter for data types
       const strictlyAvailable = hallsData.filter(hall => {
         return hall.isAvailable === true || String(hall.isAvailable).toLowerCase().trim() === 'true';
       });
@@ -60,11 +62,12 @@ const AllHallsScreen = ({ route, navigation }) => {
     const initialQuery = route.params?.initialSearch || '';
     if (initialQuery) {
       setSearchText(initialQuery);
+      // Reset params so search doesn't stick on return
       navigation.setParams({ initialSearch: undefined });
     }
   }, [route.params?.initialSearch]);
 
-  // 3. Search Filtering (Filtering from the already-available halls)
+  // 3. Search Filtering logic
   useEffect(() => {
     const result = halls.filter(hall => {
       const searchLower = searchText.toLowerCase();
@@ -78,10 +81,12 @@ const AllHallsScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
       <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
+      {/* HEADER SECTION */}
       <View style={styles.header}>
-        <SafeAreaView>
+        <SafeAreaView edges={['top']}>
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Ionicons name="arrow-back" size={30} color="black" />
@@ -92,6 +97,7 @@ const AllHallsScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           </View>
 
+          {/* SEARCH BAR */}
           <View style={styles.searchBar}>
             <TextInput 
               style={styles.searchInput} 
@@ -110,6 +116,7 @@ const AllHallsScreen = ({ route, navigation }) => {
         </SafeAreaView>
       </View>
 
+      {/* CONTENT SECTION */}
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#DA291C" />
@@ -118,7 +125,7 @@ const AllHallsScreen = ({ route, navigation }) => {
         <FlatList
           data={filteredHalls}
           keyExtractor={item => item.id}
-          extraData={filteredHalls} // Forces FlatList to re-render when data changes
+          extraData={filteredHalls}
           contentContainerStyle={styles.listPadding}
           renderItem={({ item }) => (
             <HallCard 
@@ -126,7 +133,7 @@ const AllHallsScreen = ({ route, navigation }) => {
               location={item.building}
               capacity={item.capacity}
               tags={item.tags || []}
-              isAvailable={true} // They are definitely true if they appear here
+              isAvailable={true}
               onBookNow={() => navigation.navigate('BookingForm', { hall: item })}
               onViewDetails={() => {}}
             />
@@ -144,15 +151,58 @@ const AllHallsScreen = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F2' },
-  header: { backgroundColor: '#F9EDB3', paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderColor: '#000', paddingTop: 10 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold' },
-  searchBar: { flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 25, paddingHorizontal: 15, height: 45, alignItems: 'center', borderWidth: 1.5, borderColor: '#000' },
-  searchInput: { flex: 1, height: '100%', fontSize: 16 },
-  listPadding: { padding: 15, paddingBottom: 50 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 100 },
-  emptyText: { color: '#666', fontSize: 16, marginTop: 10 }
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F2F2F2' 
+  },
+  header: { 
+    backgroundColor: '#F9EDB3', 
+    paddingHorizontal: 20, 
+    paddingBottom: 20, 
+    borderBottomWidth: 1, 
+    borderColor: '#000',
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight + 10 : 10 
+  },
+  headerTop: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 15 
+  },
+  headerTitle: { 
+    fontSize: 20, 
+    fontWeight: 'bold' 
+  },
+  searchBar: { 
+    flexDirection: 'row', 
+    backgroundColor: '#FFF', 
+    borderRadius: 25, 
+    paddingHorizontal: 15, 
+    height: 45, 
+    alignItems: 'center', 
+    borderWidth: 1.5, 
+    borderColor: '#000' 
+  },
+  searchInput: { 
+    flex: 1, 
+    height: '100%', 
+    fontSize: 16 
+  },
+  listPadding: { 
+    padding: 15, 
+    paddingBottom: 30 // Regular padding since Tab Bar is now global
+  },
+  center: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginTop: 100 
+  },
+  emptyText: { 
+    color: '#666', 
+    fontSize: 16, 
+    marginTop: 10 
+  }
 });
 
 export default AllHallsScreen;
