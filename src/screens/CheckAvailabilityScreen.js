@@ -12,6 +12,7 @@ import { db } from '../firebase/firebaseConfig';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
 // Custom imports
+import colors from '../constants/colors'; // Global colors
 import { GlobalStyles } from '../styles/GlobalStyles';
 import HamburgerMenu from '../components/HamburgerMenu';
 import HallCard from '../components/HallCard';
@@ -57,7 +58,6 @@ const CheckAvailabilityScreen = ({ navigation }) => {
     return resultDate;
   };
 
-  // --- NEW: FETCH DETAILS FOR POPUP ---
   const handleViewBookings = async (hall) => {
     setSelectedHallForDetails(hall);
     setModalVisible(true);
@@ -139,7 +139,7 @@ const CheckAvailabilityScreen = ({ navigation }) => {
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" backgroundColor="#F9EDB3" />
+      <StatusBar style="dark" backgroundColor={colors.secondary} />
       <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       {/* --- BOOKING DETAILS MODAL --- */}
@@ -152,7 +152,7 @@ const CheckAvailabilityScreen = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalHeader}>
-              Currently Booked Details For <Text style={{color: '#666'}}>{selectedHallForDetails?.name}</Text>
+              Currently Booked Details For <Text style={{color: colors.gray}}>{selectedHallForDetails?.name}</Text>
             </Text>
 
             <View style={styles.tableBorder}>
@@ -162,7 +162,7 @@ const CheckAvailabilityScreen = ({ navigation }) => {
               </View>
 
               {loadingModal ? (
-                <ActivityIndicator size="small" color="#DA291C" style={{ padding: 20 }} />
+                <ActivityIndicator size="small" color={colors.primary} style={{ padding: 20 }} />
               ) : (
                 <View>
                   {hallBookings.length > 0 ? (
@@ -198,11 +198,11 @@ const CheckAvailabilityScreen = ({ navigation }) => {
         <SafeAreaView edges={['top']} style={GlobalStyles.headerSection}>
           <View style={GlobalStyles.headerTopRow}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={30} color="black" />
+              <Ionicons name="arrow-back" size={30} color={colors.black} />
             </TouchableOpacity>
             <Text style={GlobalStyles.headerTitle}>Check Availability</Text>
             <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
-              <Ionicons name="menu" size={38} color="black" />
+              <Ionicons name="menu" size={38} color={colors.black} />
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -214,14 +214,14 @@ const CheckAvailabilityScreen = ({ navigation }) => {
         {/* SELECTOR CARD */}
         <View style={styles.selectorCard}>
           <View style={styles.cardHeader}>
-            <Ionicons name="calendar-outline" size={24} color="black" />
+            <Ionicons name="calendar-outline" size={24} color={colors.black} />
             <Text style={styles.cardHeaderTitle}>Date and Time</Text>
           </View>
 
           <Text style={styles.inputLabel}>Date</Text>
           <TouchableOpacity style={styles.dateInput} onPress={() => setShowPicker({ mode: 'date', visible: true })}>
             <Text style={styles.inputText}>{formatDate(date)}</Text>
-            <Ionicons name="chevron-down" size={18} color="#888" />
+            <Ionicons name="chevron-down" size={18} color={colors.gray} />
           </TouchableOpacity>
 
           <View style={styles.timeRow}>
@@ -265,7 +265,7 @@ const CheckAvailabilityScreen = ({ navigation }) => {
 
             {availableHalls.length === 0 ? (
               <View style={styles.emptyState}>
-                 <Ionicons name="alert-circle-outline" size={50} color="#888" />
+                 <Ionicons name="alert-circle-outline" size={50} color={colors.gray} />
                  <Text style={styles.noHalls}>No halls available for this time slot.</Text>
               </View>
             ) : (
@@ -278,7 +278,7 @@ const CheckAvailabilityScreen = ({ navigation }) => {
                   tags={hallItem.tags || []}        
                   isAvailable={true} 
                   onBookNow={() => navigation.navigate('BookingForm', { hall: hallItem })}
-                  onViewDetails={() => handleViewBookings(hallItem)} // Trigger Pop-up
+                  onViewDetails={() => handleViewBookings(hallItem)}
                 />
               ))
             )}
@@ -291,42 +291,41 @@ const CheckAvailabilityScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 110 },
-  introText: { fontSize: 15, fontWeight: '700', marginBottom: 20, lineHeight: 22 },
-  selectorCard: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#BBB', elevation: 4 },
+  introText: { fontSize: 15, fontWeight: '700', marginBottom: 20, lineHeight: 22, color: colors.text },
+  selectorCard: { backgroundColor: colors.white, borderRadius: 20, padding: 20, borderWidth: 1, borderColor: colors.gray, elevation: 4 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  cardHeaderTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
-  inputLabel: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
-  dateInput: { height: 48, borderWidth: 1, borderColor: '#999', borderRadius: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, marginBottom: 15 },
+  cardHeaderTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 10, color: colors.text },
+  inputLabel: { fontSize: 16, fontWeight: 'bold', marginBottom: 8, color: colors.text },
+  dateInput: { height: 48, borderWidth: 1, borderColor: colors.gray, borderRadius: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, marginBottom: 15 },
   timeRow: { flexDirection: 'row', justifyContent: 'space-between' },
   timeContainer: { width: '46%' },
-  timeInput: { height: 48, borderWidth: 1, borderColor: '#999', borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  inputText: { color: '#333', fontSize: 16 },
-  mainBtn: { marginTop: 25 },
+  timeInput: { height: 48, borderWidth: 1, borderColor: colors.gray, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  inputText: { color: colors.text, fontSize: 16 },
+  mainBtn: { marginTop: 25, backgroundColor: colors.primary },
   resultsContainer: { marginTop: 25 },
   resultsSummary: { marginBottom: 20 },
-  summaryText: { fontSize: 16, color: '#333', lineHeight: 24 },
-  boldText: { fontWeight: 'bold', color: '#000' },
-  countText: { fontSize: 16, color: '#666', marginTop: 8, fontWeight: '500' },
+  summaryText: { fontSize: 16, color: colors.text, lineHeight: 24 },
+  boldText: { fontWeight: 'bold', color: colors.black },
+  countText: { fontSize: 16, color: colors.gray, marginTop: 8, fontWeight: '500' },
   emptyState: { alignItems: 'center', marginTop: 30 },
-  noHalls: { textAlign: 'center', marginTop: 10, color: '#666', fontSize: 16, fontWeight: '500' },
+  noHalls: { textAlign: 'center', marginTop: 10, color: colors.gray, fontSize: 16, fontWeight: '500' },
 
-  // --- MODAL STYLES ---
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalContainer: { backgroundColor: '#FFF', width: '100%', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#000' },
-  modalHeader: { fontSize: 16, fontWeight: 'bold', marginBottom: 20 },
-  tableBorder: { borderWidth: 1, borderColor: '#000' },
-  tableHeaderRow: { flexDirection: 'row', backgroundColor: '#DDD', borderBottomWidth: 1, borderColor: '#000' },
-  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#CCC' },
+  modalContainer: { backgroundColor: colors.white, width: '100%', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: colors.black },
+  modalHeader: { fontSize: 16, fontWeight: 'bold', marginBottom: 20, color: colors.text },
+  tableBorder: { borderWidth: 1, borderColor: colors.black },
+  tableHeaderRow: { flexDirection: 'row', backgroundColor: '#DDD', borderBottomWidth: 1, borderColor: colors.black },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: colors.gray },
   tableCell: { flex: 1, padding: 8, alignItems: 'center' },
-  rightBorder: { borderRightWidth: 1, borderColor: '#000' },
-  headerText: { fontWeight: 'bold', fontSize: 14 },
-  cellText: { fontSize: 12 },
-  noBookings: { padding: 15, textAlign: 'center', color: '#888' },
+  rightBorder: { borderRightWidth: 1, borderColor: colors.black },
+  headerText: { fontWeight: 'bold', fontSize: 14, color: colors.black },
+  cellText: { fontSize: 12, color: colors.text },
+  noBookings: { padding: 15, textAlign: 'center', color: colors.gray },
   noteSection: { marginTop: 20 },
-  noteTitle: { fontWeight: 'bold', fontSize: 16 },
-  noteDescription: { color: '#DA291C', marginTop: 5, fontSize: 14, fontWeight: '500' },
-  okButton: { backgroundColor: '#DA291C', marginTop: 25, paddingVertical: 15, borderRadius: 15, alignItems: 'center', borderWidth: 1, borderColor: '#8b0000' },
-  okButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 }
+  noteTitle: { fontWeight: 'bold', fontSize: 16, color: colors.text },
+  noteDescription: { color: colors.error, marginTop: 5, fontSize: 14, fontWeight: '500' },
+  okButton: { backgroundColor: colors.primary, marginTop: 25, paddingVertical: 15, borderRadius: 15, alignItems: 'center', borderWidth: 1, borderColor: '#8b0000' },
+  okButtonText: { color: colors.white, fontWeight: 'bold', fontSize: 16 }
 });
 
 export default CheckAvailabilityScreen;

@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import colors from '../constants/colors'; // Import your global colors
 
 // Firebase
 import { db } from '../firebase/firebaseConfig';
@@ -47,7 +48,6 @@ const AllHallsScreen = ({ route, navigation }) => {
     setBookings([]);
 
     try {
-      // Query bookings table where hallId matches the clicked hall
       const q = query(collection(db, 'bookings'), where('hallId', '==', hall.id));
       const querySnapshot = await getDocs(q);
       const bookingData = querySnapshot.docs.map(doc => ({
@@ -73,7 +73,7 @@ const AllHallsScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
+      <StatusBar style="dark" backgroundColor={colors.secondary} translucent={true} />
       <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       {/* --- BOOKING DETAILS MODAL --- */}
@@ -86,10 +86,9 @@ const AllHallsScreen = ({ route, navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalHeader}>
-              Currently Booked Details For <Text style={{color: '#666'}}>{selectedHall?.name}</Text>
+              Currently Booked Details For <Text style={{color: colors.gray}}>{selectedHall?.name}</Text>
             </Text>
 
-            {/* Table UI */}
             <View style={styles.tableBorder}>
               <View style={styles.tableHeaderRow}>
                 <View style={[styles.tableCell, styles.rightBorder]}><Text style={styles.headerText}>Date</Text></View>
@@ -97,7 +96,7 @@ const AllHallsScreen = ({ route, navigation }) => {
               </View>
 
               {loadingBookings ? (
-                <ActivityIndicator size="small" color="#DA291C" style={{ padding: 20 }} />
+                <ActivityIndicator size="small" color={colors.primary} style={{ padding: 20 }} />
               ) : (
                 <View>
                   {bookings.length > 0 ? (
@@ -132,25 +131,26 @@ const AllHallsScreen = ({ route, navigation }) => {
       <View style={styles.header}>
         <SafeAreaView edges={['top']}>
           <View style={styles.headerTop}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={30} color="black" /></TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={30} color={colors.black} /></TouchableOpacity>
             <Text style={styles.headerTitle}>Available Halls</Text>
-            <TouchableOpacity onPress={() => setIsMenuOpen(true)}><Ionicons name="menu" size={35} color="black" /></TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsMenuOpen(true)}><Ionicons name="menu" size={35} color={colors.black} /></TouchableOpacity>
           </View>
           <View style={styles.searchBar}>
             <TextInput 
               style={styles.searchInput} 
               placeholder="Search hall or building..."
+              placeholderTextColor={colors.gray}
               value={searchText}
               onChangeText={setSearchText}
             />
-            <Ionicons name="search-outline" size={22} color="black" />
+            <Ionicons name="search-outline" size={22} color={colors.black} />
           </View>
         </SafeAreaView>
       </View>
 
       {/* CONTENT */}
       {loading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color="#DA291C" /></View>
+        <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
       ) : (
         <FlatList
           data={filteredHalls}
@@ -164,7 +164,7 @@ const AllHallsScreen = ({ route, navigation }) => {
               tags={item.tags || []}
               isAvailable={true}
               onBookNow={() => navigation.navigate('BookingForm', { hall: item })}
-              onViewDetails={() => handleViewBookings(item)} // This triggers the popup
+              onViewDetails={() => handleViewBookings(item)} 
             />
           )}
         />
@@ -176,17 +176,26 @@ const AllHallsScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F2F2F2' },
   header: { 
-    backgroundColor: '#F9EDB3', 
+    backgroundColor: colors.secondary, 
     paddingHorizontal: 20, 
     paddingBottom: 20, 
     borderBottomWidth: 1, 
-    borderColor: '#000',
+    borderColor: colors.black,
     paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight + 10 : 10 
   },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold' },
-  searchBar: { flexDirection: 'row', backgroundColor: '#FFF', borderRadius: 25, paddingHorizontal: 15, height: 45, alignItems: 'center', borderWidth: 1.5, borderColor: '#000' },
-  searchInput: { flex: 1, height: '100%', fontSize: 16 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text },
+  searchBar: { 
+    flexDirection: 'row', 
+    backgroundColor: colors.white, 
+    borderRadius: 25, 
+    paddingHorizontal: 15, 
+    height: 45, 
+    alignItems: 'center', 
+    borderWidth: 1.5, 
+    borderColor: colors.black 
+  },
+  searchInput: { flex: 1, height: '100%', fontSize: 16, color: colors.text },
   listPadding: { padding: 15, paddingBottom: 100 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
@@ -199,37 +208,37 @@ const styles = StyleSheet.create({
     padding: 20
   },
   modalContainer: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     width: '100%',
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#000'
+    borderColor: colors.black
   },
-  modalHeader: { fontSize: 16, fontWeight: 'bold', marginBottom: 20 },
-  tableBorder: { borderWidth: 1, borderColor: '#000' },
-  tableHeaderRow: { flexDirection: 'row', backgroundColor: '#DDD', borderBottomWidth: 1, borderColor: '#000' },
+  modalHeader: { fontSize: 16, fontWeight: 'bold', marginBottom: 20, color: colors.text },
+  tableBorder: { borderWidth: 1, borderColor: colors.black },
+  tableHeaderRow: { flexDirection: 'row', backgroundColor: '#DDD', borderBottomWidth: 1, borderColor: colors.black },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#CCC' },
   tableCell: { flex: 1, padding: 8, alignItems: 'center' },
-  rightBorder: { borderRightWidth: 1, borderColor: '#000' },
-  headerText: { fontWeight: 'bold', fontSize: 14 },
-  cellText: { fontSize: 12 },
-  noBookings: { padding: 15, textAlign: 'center', color: '#888' },
+  rightBorder: { borderRightWidth: 1, borderColor: colors.black },
+  headerText: { fontWeight: 'bold', fontSize: 14, color: colors.black },
+  cellText: { fontSize: 12, color: colors.text },
+  noBookings: { padding: 15, textAlign: 'center', color: colors.gray },
   
   noteSection: { marginTop: 20 },
-  noteTitle: { fontWeight: 'bold', fontSize: 16 },
-  noteDescription: { color: '#DA291C', marginTop: 5, fontSize: 14, fontWeight: '500' },
+  noteTitle: { fontWeight: 'bold', fontSize: 16, color: colors.black },
+  noteDescription: { color: colors.error, marginTop: 5, fontSize: 14, fontWeight: '500' },
 
   okButton: {
-    backgroundColor: '#DA291C',
+    backgroundColor: colors.primary,
     marginTop: 25,
     paddingVertical: 15,
     borderRadius: 15,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#8b0000'
+    borderColor: '#8b0000' // Darker shade of red for border depth
   },
-  okButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 }
+  okButtonText: { color: colors.white, fontWeight: 'bold', fontSize: 16 }
 });
 
 export default AllHallsScreen;

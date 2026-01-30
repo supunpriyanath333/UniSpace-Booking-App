@@ -16,6 +16,9 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { AuthContext } from '../context/AuthContext';
 
+// Custom Configuration
+import colors from '../constants/colors';
+
 const { width, height } = Dimensions.get('window');
 
 const HamburgerMenu = ({ visible, onClose }) => {
@@ -51,7 +54,7 @@ const HamburgerMenu = ({ visible, onClose }) => {
         onPress: async () => {
           try {
             await signOut(auth);
-            logout(); 
+            if (logout) logout(); 
             onClose();
           } catch (error) {
             Alert.alert("Error", "Failed to log out.");
@@ -63,24 +66,29 @@ const HamburgerMenu = ({ visible, onClose }) => {
 
   return (
     <View style={styles.overlay}>
-      <TouchableOpacity style={styles.backgroundClose} activeOpacity={1} onPress={onClose} />
+      <TouchableOpacity 
+        style={styles.backgroundClose} 
+        activeOpacity={1} 
+        onPress={onClose} 
+      />
       <View style={styles.menuPanel}>
         <TouchableOpacity style={styles.closeIcon} onPress={onClose}>
-          <Ionicons name="close" size={30} color="black" />
+          <Ionicons name="close" size={32} color={colors.black} />
         </TouchableOpacity>
 
         <View style={styles.profileArea}>
           <View style={styles.avatarContainer}>
-             <Image source={require('../../assets/logo.png')} style={styles.avatar} />
+             <Image source={require('../../assets/logo.png')} style={styles.avatar} resizeMode="contain" />
           </View>
           <Text style={styles.userName}>{userName}</Text>
         </View>
 
         <View style={styles.menuItems}>
-          <MenuTab icon="person-outline" title="Profile" />
-          <MenuTab icon="accessibility-outline" title="Accessibility" />
-          <MenuTab icon="information-circle-outline" title="About Us" />
-          <MenuTab icon="settings-outline" title="Settings" />
+          <MenuTab icon="notifications-outline" title="Notifications" onPress={onClose} />
+          <MenuTab icon="person-outline" title="Profile" onPress={onClose} />
+          <MenuTab icon="accessibility-outline" title="Accessibility" onPress={onClose} />
+          <MenuTab icon="information-circle-outline" title="About Us" onPress={onClose} />
+          <MenuTab icon="settings-outline" title="Settings" onPress={onClose} />
         </View>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -91,27 +99,86 @@ const HamburgerMenu = ({ visible, onClose }) => {
   );
 };
 
-const MenuTab = ({ icon, title }) => (
-  <TouchableOpacity style={styles.tab}>
-    <Ionicons name={icon} size={22} color="black" />
+const MenuTab = ({ icon, title, onPress }) => (
+  <TouchableOpacity style={styles.tab} onPress={onPress}>
+    <Ionicons name={icon} size={22} color={colors.black} />
     <Text style={styles.tabText}>{title}</Text>
   </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
-  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', flexDirection: 'row', zIndex: 2000 },
+  overlay: { 
+    position: 'absolute', 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    flexDirection: 'row', 
+    zIndex: 2000 
+  },
   backgroundClose: { flex: 1 },
-  menuPanel: { width: width * 0.75, backgroundColor: '#F5F5F5', height: height, padding: 20, paddingTop: 50 },
-  closeIcon: { alignSelf: 'flex-end' },
+  menuPanel: { 
+    width: width * 0.75, 
+    backgroundColor: '#F8F8F8', 
+    height: height, 
+    padding: 20, 
+    paddingTop: 50,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  closeIcon: { alignSelf: 'flex-end', padding: 5 },
   profileArea: { alignItems: 'center', marginBottom: 30 },
-  avatarContainer: { width: 100, height: 100, borderRadius: 50, backgroundColor: 'white', elevation: 5, overflow: 'hidden' },
-  avatar: { width: '100%', height: '100%' },
-  userName: { fontSize: 18, fontWeight: 'bold', marginTop: 10 },
+  avatarContainer: { 
+    width: 90, 
+    height: 90, 
+    borderRadius: 45, 
+    backgroundColor: colors.white, 
+    elevation: 4, 
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#EEE',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  avatar: { width: '80%', height: '80%' },
+  userName: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    marginTop: 12, 
+    color: colors.text 
+  },
   menuItems: { flex: 1 },
-  tab: { flexDirection: 'row', backgroundColor: 'white', padding: 15, borderRadius: 12, marginBottom: 12, alignItems: 'center', elevation: 2 },
-  tabText: { marginLeft: 15, fontWeight: '500' },
-  logoutBtn: { backgroundColor: '#DA291C', padding: 15, borderRadius: 12, alignItems: 'center', marginBottom: 40 },
-  logoutText: { color: 'white', fontWeight: 'bold' }
+  tab: { 
+    flexDirection: 'row', 
+    backgroundColor: colors.white, 
+    padding: 15, 
+    borderRadius: 12, 
+    marginBottom: 12, 
+    alignItems: 'center', 
+    elevation: 1,
+    borderWidth: 0.5,
+    borderColor: '#EEE'
+  },
+  tabText: { 
+    marginLeft: 15, 
+    fontWeight: '500', 
+    fontSize: 16, 
+    color: colors.text 
+  },
+  logoutBtn: { 
+    backgroundColor: colors.primary, 
+    padding: 16, 
+    borderRadius: 12, 
+    alignItems: 'center', 
+    marginBottom: 40,
+    elevation: 3 
+  },
+  logoutText: { 
+    color: colors.white, 
+    fontWeight: 'bold', 
+    fontSize: 16 
+  }
 });
 
 export default HamburgerMenu;

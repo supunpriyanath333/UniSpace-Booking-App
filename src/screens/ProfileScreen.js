@@ -5,13 +5,16 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { GlobalStyles } from '../styles/GlobalStyles';
-import HamburgerMenu from '../components/HamburgerMenu';
 
 // Firebase Imports
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { signOut, sendPasswordResetEmail } from 'firebase/auth';
+
+// Custom Configuration
+import colors from '../constants/colors';
+import { GlobalStyles } from '../styles/GlobalStyles';
+import HamburgerMenu from '../components/HamburgerMenu';
 
 const ProfileScreen = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,7 +46,6 @@ const ProfileScreen = ({ navigation }) => {
         if (docSnap.exists()) {
           setUserData(docSnap.data());
         } else {
-            // Fallback if no firestore doc exists
           setUserData({ ...userData, email: user.email });
         }
       } catch (error) {
@@ -108,12 +110,10 @@ const ProfileScreen = ({ navigation }) => {
       const user = auth.currentUser;
       const userRef = doc(db, 'users', user.uid);
       
-      // Update specific field dynamically
       await updateDoc(userRef, {
         [editingField]: tempValue
       });
 
-      // Update local state immediately
       setUserData(prev => ({ ...prev, [editingField]: tempValue }));
       setEditModalVisible(false);
     } catch (error) {
@@ -126,14 +126,14 @@ const ProfileScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={[GlobalStyles.container, {justifyContent:'center', alignItems:'center'}]}>
-        <ActivityIndicator size="large" color="#DA291C" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
+      <StatusBar style="dark" backgroundColor={colors.secondary} translucent={true} />
       <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       <View style={GlobalStyles.headerWrapper}>
@@ -141,11 +141,11 @@ const ProfileScreen = ({ navigation }) => {
           <View style={GlobalStyles.headerSection}>
             <View style={GlobalStyles.headerTopRow}>
               <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={30} color="black" />
+                <Ionicons name="arrow-back" size={30} color={colors.black} />
               </TouchableOpacity>
               <Text style={GlobalStyles.headerTitle}>Profile</Text>
               <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
-                <Ionicons name="menu" size={38} color="black" />
+                <Ionicons name="menu" size={38} color={colors.black} />
               </TouchableOpacity>
             </View>
           </View>
@@ -162,7 +162,6 @@ const ProfileScreen = ({ navigation }) => {
               style={styles.avatar} 
             />
           </View>
-          {/* Note: Photo editing usually requires extra library (expo-image-picker), kept as visual for now */}
           <TouchableOpacity onPress={() => Alert.alert("Info", "Photo upload feature coming soon!")}>
             <Text style={styles.editPhotoText}>Edit</Text>
           </TouchableOpacity>
@@ -184,13 +183,12 @@ const ProfileScreen = ({ navigation }) => {
             onEdit={() => openEditModal('phone', userData.phone)} 
           />
           
-          {/* Email is typically not editable directly to maintain auth integrity */}
           <View style={styles.fieldCard}>
             <View style={styles.fieldTextContainer}>
               <Text style={styles.fieldLabel}>Email :</Text>
               <Text style={styles.fieldValue} numberOfLines={1}>{userData.email}</Text>
             </View>
-            <Ionicons name="lock-closed-outline" size={16} color="#999" />
+            <Ionicons name="lock-closed-outline" size={16} color={colors.gray} />
           </View>
           
           <TouchableOpacity style={styles.changePassBtn} onPress={handleChangePassword}>
@@ -215,6 +213,7 @@ const ProfileScreen = ({ navigation }) => {
               value={tempValue} 
               onChangeText={setTempValue}
               placeholder={editingField === 'name' ? 'Enter Name' : 'Enter Phone Number'}
+              placeholderTextColor={colors.gray}
               keyboardType={editingField === 'phone' ? 'phone-pad' : 'default'}
               autoFocus
             />
@@ -225,7 +224,7 @@ const ProfileScreen = ({ navigation }) => {
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.saveBtn} onPress={saveEdit} disabled={saving}>
-                {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveBtnText}>Save</Text>}
+                {saving ? <ActivityIndicator color={colors.white} /> : <Text style={styles.saveBtnText}>Save</Text>}
               </TouchableOpacity>
             </View>
           </View>
@@ -236,7 +235,6 @@ const ProfileScreen = ({ navigation }) => {
   );
 };
 
-// Reusable Field Component
 const ProfileField = ({ label, value, onEdit }) => (
   <View style={styles.fieldCard}>
     <View style={styles.fieldTextContainer}>
@@ -254,18 +252,18 @@ const styles = StyleSheet.create({
   profileHeader: { alignItems: 'center', marginVertical: 20 },
   avatarContainer: {
     width: 130, height: 130, borderRadius: 65,
-    borderWidth: 1, borderColor: '#000',
-    overflow: 'hidden', backgroundColor: '#FFF',
-    elevation: 5,
+    borderWidth: 1, borderColor: colors.black,
+    overflow: 'hidden', backgroundColor: colors.white,
+    elevation: 5, shadowColor: colors.black, shadowOpacity: 0.1, shadowRadius: 5
   },
   avatar: { width: '100%', height: '100%', resizeMode: 'contain' },
-  editPhotoText: { color: '#DA291C', textDecorationLine: 'underline', marginTop: 8, fontWeight: '600' },
-  userNameTitle: { fontSize: 22, fontWeight: 'bold', marginTop: 10 },
-  roleText: { fontSize: 14, color: '#666', marginTop: 2 },
+  editPhotoText: { color: colors.primary, textDecorationLine: 'underline', marginTop: 8, fontWeight: '600' },
+  userNameTitle: { fontSize: 22, fontWeight: 'bold', marginTop: 10, color: colors.text },
+  roleText: { fontSize: 14, color: colors.gray, marginTop: 2 },
   
   detailsContainer: { marginTop: 10 },
   fieldCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -277,12 +275,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   fieldTextContainer: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  fieldLabel: { fontWeight: 'bold', fontSize: 15, color: '#000', marginRight: 8 },
-  fieldValue: { fontSize: 14, color: '#666', flex: 1 },
-  editText: { color: '#DA291C', fontWeight: 'bold', textDecorationLine: 'underline' },
+  fieldLabel: { fontWeight: 'bold', fontSize: 15, color: colors.text, marginRight: 8 },
+  fieldValue: { fontSize: 14, color: colors.gray, flex: 1 },
+  editText: { color: colors.primary, fontWeight: 'bold', textDecorationLine: 'underline' },
   
   changePassBtn: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     padding: 16,
     borderRadius: 15,
     borderWidth: 1,
@@ -290,27 +288,26 @@ const styles = StyleSheet.create({
     elevation: 2,
     alignItems: 'center'
   },
-  changePassText: { color: '#DA291C', fontWeight: 'bold', fontSize: 16 },
+  changePassText: { color: colors.primary, fontWeight: 'bold', fontSize: 16 },
   
   logoutBtn: {
-    backgroundColor: '#DA291C',
+    backgroundColor: colors.primary,
     padding: 18,
     borderRadius: 15,
     alignItems: 'center',
     marginTop: 30,
   },
-  logoutText: { color: '#FFF', fontWeight: 'bold', fontSize: 18 },
+  logoutText: { color: colors.white, fontWeight: 'bold', fontSize: 18 },
 
-  // Modal Styles
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContainer: { backgroundColor: '#FFF', width: '85%', padding: 25, borderRadius: 15, elevation: 5 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
-  modalInput: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 10, fontSize: 16, marginBottom: 20 },
+  modalContainer: { backgroundColor: colors.white, width: '85%', padding: 25, borderRadius: 15, elevation: 5 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, textAlign: 'center', color: colors.text },
+  modalInput: { borderWidth: 1, borderColor: colors.gray, borderRadius: 8, padding: 10, fontSize: 16, marginBottom: 20, color: colors.text },
   modalBtnRow: { flexDirection: 'row', justifyContent: 'space-between' },
   cancelBtn: { flex: 1, padding: 12, marginRight: 10, alignItems: 'center', backgroundColor: '#EEE', borderRadius: 8 },
-  cancelBtnText: { color: '#333', fontWeight: 'bold' },
-  saveBtn: { flex: 1, padding: 12, marginLeft: 10, alignItems: 'center', backgroundColor: '#DA291C', borderRadius: 8 },
-  saveBtnText: { color: '#FFF', fontWeight: 'bold' }
+  cancelBtnText: { color: colors.text, fontWeight: 'bold' },
+  saveBtn: { flex: 1, padding: 12, marginLeft: 10, alignItems: 'center', backgroundColor: colors.primary, borderRadius: 8 },
+  saveBtnText: { color: colors.white, fontWeight: 'bold' }
 });
 
 export default ProfileScreen;

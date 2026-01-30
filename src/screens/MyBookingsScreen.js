@@ -10,7 +10,8 @@ import { StatusBar } from 'expo-status-bar';
 import { db, auth } from '../firebase/firebaseConfig';
 import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 
-// Custom Components
+// Custom Configuration
+import colors from '../constants/colors';
 import { GlobalStyles } from '../styles/GlobalStyles';
 import HamburgerMenu from '../components/HamburgerMenu';
 import BookingCard from '../components/BookingCard';
@@ -67,21 +68,21 @@ const MyBookingsScreen = ({ navigation }) => {
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" backgroundColor="#F9EDB3" translucent={true} />
+      <StatusBar style="dark" backgroundColor={colors.secondary} translucent={true} />
       <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
-      {/* HEADER SECTION - Using GlobalStyles exactly like Profile/CheckAvailability */}
+      {/* HEADER SECTION */}
       <View style={GlobalStyles.headerWrapper}>
         <View style={GlobalStyles.headerSection}>
           <View style={GlobalStyles.headerTopRow}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={30} color="black" />
+              <Ionicons name="arrow-back" size={30} color={colors.black} />
             </TouchableOpacity>
             
             <Text style={GlobalStyles.headerTitle}>My Bookings</Text>
             
             <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
-              <Ionicons name="menu" size={38} color="black" />
+              <Ionicons name="menu" size={38} color={colors.black} />
             </TouchableOpacity>
           </View>
         </View>
@@ -94,13 +95,20 @@ const MyBookingsScreen = ({ navigation }) => {
             ? bookings.length 
             : bookings.filter(b => b.status === label).length;
             
+          const isActive = activeFilter === label;
+
           return (
             <TouchableOpacity 
               key={label}
-              style={[styles.filterBtn, activeFilter === label && styles.activeFilterBtn]} 
+              style={[
+                styles.filterBtn, 
+                isActive && { backgroundColor: colors.secondary, borderColor: colors.black }
+              ]} 
               onPress={() => setActiveFilter(label)}
             >
-              <Text style={styles.filterText}>{label} ({count})</Text>
+              <Text style={[styles.filterText, isActive && { color: colors.black }]}>
+                {label} ({count})
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -108,7 +116,7 @@ const MyBookingsScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
         {loading ? (
-          <ActivityIndicator size="large" color="#DA291C" style={{ marginTop: 50 }} />
+          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
         ) : filteredBookings.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="calendar-outline" size={80} color="#DDD" />
@@ -140,7 +148,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 10,
     justifyContent: 'space-around', 
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderColor: '#EEE'
   },
@@ -149,16 +157,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, 
     borderRadius: 20, 
     borderWidth: 1, 
-    borderColor: '#CCC' 
-  },
-  activeFilterBtn: { 
-    backgroundColor: '#F9EDB3',
-    borderColor: '#000'
+    borderColor: colors.gray 
   },
   filterText: { 
     fontWeight: 'bold', 
     fontSize: 13,
-    color: '#000'
+    color: colors.text
   },
   scrollBody: { 
     paddingHorizontal: 15, 
@@ -172,7 +176,7 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#999',
+    color: colors.gray,
     fontWeight: '600'
   }
 });
