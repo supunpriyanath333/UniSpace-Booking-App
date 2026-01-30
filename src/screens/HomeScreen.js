@@ -64,7 +64,7 @@ const HomeScreen = ({ navigation }) => {
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
             <View style={styles.headerTop}>
-              <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+              <Image source={require('../../assets/logo 1.png')} style={styles.logo} resizeMode="contain" />
               <TouchableOpacity onPress={() => setIsMenuOpen(true)}>
                 <Ionicons name="menu" size={38} color="black" />
               </TouchableOpacity>
@@ -195,9 +195,9 @@ const styles = StyleSheet.create({
     borderColor: '#000',
   },
   headerContent: { paddingHorizontal: 20, paddingBottom: 25 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-  logo: { width: 200, height: 100 },
-  greetingContainer: { marginVertical: 15 },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', },
+  logo: { width: 200, height: 100, marginBottom: -10 },
+  greetingContainer: { marginTop: 0, marginBottom: 10},
   greetingTitle: { fontSize: 26, fontWeight: 'bold' },
   greetingSub: { fontSize: 14, color: '#444' },
   searchBar: {
@@ -241,16 +241,18 @@ const styles = StyleSheet.create({
   infoBox: {
     backgroundColor: '#F2F2F2',
     width: '48%',
+    height: 120, // Fixed height to fit images perfectly
     borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#0b0a0a',
+    borderWidth: 1.5,
+    borderColor: '#000',
     marginBottom: 20,
     overflow: 'hidden',
   },
   infoBg: {
+    flex: 1,
     padding: 15,
     alignItems: 'center',
-    width: '100%',
+    justifyContent: 'center',
   },
   infoNumber: { fontSize: 18, fontWeight: 'bold', marginTop: 5 },
   infoLabel: { fontSize: 14, color: '#252323', fontWeight: 'bold' }
