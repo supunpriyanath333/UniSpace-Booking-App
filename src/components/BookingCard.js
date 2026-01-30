@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Button from './Button'; // Your existing Button component
+import Button from './Button'; 
 
 const BookingCard = ({ 
   hallName, 
@@ -13,18 +13,18 @@ const BookingCard = ({
   status, 
   onCancel 
 }) => {
-  const isPending = status.toLowerCase() === 'pending';
+  const isPending = status?.toLowerCase() === 'pending';
 
   return (
     <View style={styles.card}>
-      {/* Header with Title and Status Badge */}
+      {/* Header with Title and Dynamic Status Badge */}
       <View style={styles.headerRow}>
         <Text style={styles.hallTitle}>{hallName}</Text>
         <View style={[styles.badge, isPending ? styles.pendingBadge : styles.approvedBadge]}>
           <Ionicons 
-            name={isPending ? "time-outline" : "checkbox-outline"} 
+            name={isPending ? "time-outline" : "checkmark-done-circle"} 
             size={14} 
-            color={isPending ? "#854d0e" : "#166534"} 
+            color={isPending ? "#000" : "#1B5E20"} 
           />
           <Text style={[styles.badgeText, isPending ? styles.pendingText : styles.approvedText]}>
             {status}
@@ -47,7 +47,7 @@ const BookingCard = ({
 
       <View style={styles.infoRow}>
         <Ionicons name="time-outline" size={16} color="#666" />
-        <Text style={styles.infoText}>{time}</Text>
+        <Text style={styles.infoText}>{time} hr</Text>
       </View>
 
       <View style={styles.infoRow}>
@@ -60,7 +60,6 @@ const BookingCard = ({
         <Text style={styles.infoText}>{students} Students</Text>
       </View>
 
-      {/* Using your existing Button component */}
       <Button 
         title="Cancel Booking" 
         onPress={onCancel} 
@@ -85,25 +84,22 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  hallTitle: { fontSize: 18, fontWeight: 'bold' },
+  hallTitle: { fontSize: 18, fontWeight: 'bold', flex: 1 },
   locationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   locationText: { marginLeft: 6, color: '#666', fontSize: 14 },
   divider: { height: 1, backgroundColor: '#EEE', marginBottom: 12 },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   infoText: { marginLeft: 10, color: '#444', fontSize: 14 },
   
-  // Badge Styles
-  badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
-  pendingBadge: { backgroundColor: '#FEF3C7', borderColor: '#F59E0B' },
-  approvedBadge: { backgroundColor: '#DCFCE7', borderColor: '#22C55E' },
+  // Badge Styles updated to match screenshots
+  badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 15, borderWidth: 1 },
+  pendingBadge: { backgroundColor: '#FFCDD2', borderColor: '#EF9A9A' }, // Red/Pink from Screenshot_46
+  approvedBadge: { backgroundColor: '#C8E6C9', borderColor: '#81C784' }, // Green from Screenshot_47
   badgeText: { marginLeft: 4, fontWeight: 'bold', fontSize: 12 },
-  pendingText: { color: '#854d0e' },
-  approvedText: { color: '#166534' },
+  pendingText: { color: '#000' },
+  approvedText: { color: '#1B5E20' },
   
-  cancelBtn: {
-    marginTop: 15,
-    height: 48, // Slightly more compact for the card
-  }
+  cancelBtn: { marginTop: 15, height: 48 }
 });
 
 export default BookingCard;

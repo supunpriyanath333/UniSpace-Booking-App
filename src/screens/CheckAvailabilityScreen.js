@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, Alert, ActivityIndicator
+  SafeAreaView, Alert, ActivityIndicator, Modal, Platform, StatusBar as RNStatusBar
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,69 +23,75 @@ const CheckAvailabilityScreen = ({ navigation }) => {
   const [showResults, setShowResults] = useState(false);
   const [availableHalls, setAvailableHalls] = useState([]);
 
-  // Default: Today's date
+  // --- POPUP STATES ---
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedHallForDetails, setSelectedHallForDetails] = useState(null);
+  const [hallBookings, setHallBookings] = useState([]);
+  const [loadingModal, setLoadingModal] = useState(false);
+
   const [date, setDate] = useState(new Date());
-  
-  // Default Times
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
-  
   const [showPicker, setShowPicker] = useState({ mode: 'date', visible: false });
 
-  // Format Date for UI and Firebase Query (e.g., "28/01/2026")
   const formatDate = (d) => {
     return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
   };
 
-  // Format Time for UI (e.g., "10:30 AM")
   const formatTimeAMPM = (t) => {
     return t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
-  // --- CRITICAL: PARSE STRING TIME TO DATE OBJECT ---
-  // Converts "08:30 AM" -> Date Object on the *selected date*
   const parseTimeString = (timeStr, baseDate) => {
     if (!timeStr) return null;
-    
-    // clean string
     const cleanStr = timeStr.trim(); 
-    
-    // Split "10:30 AM" or "10:30AM"
     const parts = cleanStr.split(/[\s]+/); 
-    if (parts.length < 2) return null; // Invalid format
-
-    const [timeComponent, modifier] = parts; // "10:30", "AM"
+    if (parts.length < 2) return null; 
+    const [timeComponent, modifier] = parts; 
     let [hours, minutes] = timeComponent.split(':').map(Number);
-
     if (isNaN(hours) || isNaN(minutes)) return null;
-
-    // Convert to 24-hour format for comparison
     if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
     if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
-
-    // Create a new date object based on the USER'S selected date
     const resultDate = new Date(baseDate);
     resultDate.setHours(hours, minutes, 0, 0);
     return resultDate;
   };
 
+  // --- NEW: FETCH DETAILS FOR POPUP ---
+  const handleViewBookings = async (hall) => {
+    setSelectedHallForDetails(hall);
+    setModalVisible(true);
+    setLoadingModal(true);
+    setHallBookings([]);
+
+    try {
+      const q = query(collection(db, 'bookings'), where('hallId', '==', hall.id));
+      const querySnapshot = await getDocs(q);
+      const bookingData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setHallBookings(bookingData);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    } finally {
+      setLoadingModal(false);
+    }
+  };
+
   const handleCheck = async () => {
-    // 1. Validate Input
     if (startTime >= endTime) {
       Alert.alert("Invalid Time", "End time must be after start time.");
       return;
     }
-
     setLoading(true);
     setShowResults(false);
 
     try {
-      // 2. Fetch ALL halls (to filter them later)
       const hallsRef = collection(db, 'halls');
       const hallsSnapshot = await getDocs(hallsRef);
       const allHalls = hallsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // 3. Fetch bookings ONLY for the selected date
       const selectedDateStr = formatDate(date);
       const bookingsQuery = query(
         collection(db, 'bookings'), 
@@ -94,46 +100,29 @@ const CheckAvailabilityScreen = ({ navigation }) => {
       const bookingsSnapshot = await getDocs(bookingsQuery);
       const bookingsToday = bookingsSnapshot.docs.map(doc => doc.data());
 
-      // 4. MAIN LOGIC: Filter Halls
       const filteredHalls = allHalls.filter(hall => {
-        // A. Check if Hall is Active/Available generally
         const isHallActive = hall.isAvailable === true || String(hall.isAvailable).toLowerCase() === 'true';
         if (!isHallActive) return false;
 
-        // B. Check for Conflicts with Existing Bookings
-        // We look for ANY booking for this hall that overlaps with user requested time.
         const hasConflict = bookingsToday.some(booking => {
-          if (booking.hallId !== hall.id) return false; // Skip bookings for other halls
-
-          // Parse booking times to Date objects
+          if (booking.hallId !== hall.id) return false; 
           const bookedStart = parseTimeString(booking.startTime, date);
           const bookedEnd = parseTimeString(booking.endTime, date);
-
-          if (!bookedStart || !bookedEnd) return false; // Skip invalid data
-
-          // Normalize User Times to the same date context for accurate comparison
+          if (!bookedStart || !bookedEnd) return false; 
           const userStart = new Date(date);
           userStart.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
-
           const userEnd = new Date(date);
           userEnd.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
-
-          // OVERLAP FORMULA: (UserStart < BookedEnd) AND (UserEnd > BookedStart)
-          const isOverlapping = (userStart < bookedEnd && userEnd > bookedStart);
-          
-          return isOverlapping;
+          return (userStart < bookedEnd && userEnd > bookedStart);
         });
-
-        // If there is a conflict, DO NOT include this hall (return false)
         return !hasConflict;
       });
 
       setAvailableHalls(filteredHalls);
       setShowResults(true);
-
     } catch (error) {
       console.error("Error checking availability:", error);
-      Alert.alert("Error", "Could not check availability. Please try again.");
+      Alert.alert("Error", "Could not check availability.");
     } finally {
       setLoading(false);
     }
@@ -152,6 +141,57 @@ const CheckAvailabilityScreen = ({ navigation }) => {
     <View style={GlobalStyles.container}>
       <StatusBar style="dark" backgroundColor="#F9EDB3" />
       <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+
+      {/* --- BOOKING DETAILS MODAL --- */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalHeader}>
+              Currently Booked Details For <Text style={{color: '#666'}}>{selectedHallForDetails?.name}</Text>
+            </Text>
+
+            <View style={styles.tableBorder}>
+              <View style={styles.tableHeaderRow}>
+                <View style={[styles.tableCell, styles.rightBorder]}><Text style={styles.headerText}>Date</Text></View>
+                <View style={styles.tableCell}><Text style={styles.headerText}>Time</Text></View>
+              </View>
+
+              {loadingModal ? (
+                <ActivityIndicator size="small" color="#DA291C" style={{ padding: 20 }} />
+              ) : (
+                <View>
+                  {hallBookings.length > 0 ? (
+                    hallBookings.map((item) => (
+                      <View key={item.id} style={styles.tableRow}>
+                        <View style={[styles.tableCell, styles.rightBorder]}><Text style={styles.cellText}>{item.date}</Text></View>
+                        <View style={styles.tableCell}><Text style={styles.cellText}>{item.startTime} - {item.endTime}</Text></View>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.noBookings}>No current bookings found.</Text>
+                  )}
+                </View>
+              )}
+            </View>
+
+            <View style={styles.noteSection}>
+              <Text style={styles.noteTitle}>Note</Text>
+              <Text style={styles.noteDescription}>
+                If you want to book this hall, please choose a time without these reserved times.
+              </Text>
+            </View>
+
+            <TouchableOpacity style={styles.okButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.okButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* HEADER */}
       <View style={GlobalStyles.headerWrapper}>
@@ -202,12 +242,11 @@ const CheckAvailabilityScreen = ({ navigation }) => {
           <Button title="Check Availability" onPress={handleCheck} loading={loading} style={styles.mainBtn} />
         </View>
 
-        {/* DATE PICKER COMPONENT */}
         {showPicker.visible && (
           <DateTimePicker
             value={showPicker.mode === 'date' ? date : (showPicker.mode === 'start' ? startTime : endTime)}
             mode={showPicker.mode === 'date' ? 'date' : 'time'}
-            is24Hour={false} // Ensures AM/PM selector
+            is24Hour={false}
             display="default"
             onChange={onPickerChange}
           />
@@ -239,7 +278,7 @@ const CheckAvailabilityScreen = ({ navigation }) => {
                   tags={hallItem.tags || []}        
                   isAvailable={true} 
                   onBookNow={() => navigation.navigate('BookingForm', { hall: hallItem })}
-                  onViewDetails={() => {}}
+                  onViewDetails={() => handleViewBookings(hallItem)} // Trigger Pop-up
                 />
               ))
             )}
@@ -269,7 +308,25 @@ const styles = StyleSheet.create({
   boldText: { fontWeight: 'bold', color: '#000' },
   countText: { fontSize: 16, color: '#666', marginTop: 8, fontWeight: '500' },
   emptyState: { alignItems: 'center', marginTop: 30 },
-  noHalls: { textAlign: 'center', marginTop: 10, color: '#666', fontSize: 16, fontWeight: '500' }
+  noHalls: { textAlign: 'center', marginTop: 10, color: '#666', fontSize: 16, fontWeight: '500' },
+
+  // --- MODAL STYLES ---
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContainer: { backgroundColor: '#FFF', width: '100%', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#000' },
+  modalHeader: { fontSize: 16, fontWeight: 'bold', marginBottom: 20 },
+  tableBorder: { borderWidth: 1, borderColor: '#000' },
+  tableHeaderRow: { flexDirection: 'row', backgroundColor: '#DDD', borderBottomWidth: 1, borderColor: '#000' },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#CCC' },
+  tableCell: { flex: 1, padding: 8, alignItems: 'center' },
+  rightBorder: { borderRightWidth: 1, borderColor: '#000' },
+  headerText: { fontWeight: 'bold', fontSize: 14 },
+  cellText: { fontSize: 12 },
+  noBookings: { padding: 15, textAlign: 'center', color: '#888' },
+  noteSection: { marginTop: 20 },
+  noteTitle: { fontWeight: 'bold', fontSize: 16 },
+  noteDescription: { color: '#DA291C', marginTop: 5, fontSize: 14, fontWeight: '500' },
+  okButton: { backgroundColor: '#DA291C', marginTop: 25, paddingVertical: 15, borderRadius: 15, alignItems: 'center', borderWidth: 1, borderColor: '#8b0000' },
+  okButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 }
 });
 
 export default CheckAvailabilityScreen;

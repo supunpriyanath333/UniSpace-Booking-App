@@ -206,14 +206,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#000'
   },
-  modalHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 20 },
+  modalHeader: { fontSize: 16, fontWeight: 'bold', marginBottom: 20 },
   tableBorder: { borderWidth: 1, borderColor: '#000' },
   tableHeaderRow: { flexDirection: 'row', backgroundColor: '#DDD', borderBottomWidth: 1, borderColor: '#000' },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#CCC' },
-  tableCell: { flex: 1, padding: 10, alignItems: 'center' },
+  tableCell: { flex: 1, padding: 8, alignItems: 'center' },
   rightBorder: { borderRightWidth: 1, borderColor: '#000' },
   headerText: { fontWeight: 'bold', fontSize: 14 },
-  cellText: { fontSize: 13 },
+  cellText: { fontSize: 12 },
   noBookings: { padding: 15, textAlign: 'center', color: '#888' },
   
   noteSection: { marginTop: 20 },
