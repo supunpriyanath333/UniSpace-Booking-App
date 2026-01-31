@@ -9,6 +9,7 @@ import {
   Alert 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
 
 // Firebase & Context
 import { auth, db } from '../firebase/firebaseConfig';
@@ -22,6 +23,7 @@ import colors from '../constants/colors';
 const { width, height } = Dimensions.get('window');
 
 const HamburgerMenu = ({ visible, onClose }) => {
+  const navigation = useNavigation(); // Hook to access navigation
   const { logout } = useContext(AuthContext);
   const [userName, setUserName] = useState('Loading...');
 
@@ -44,6 +46,12 @@ const HamburgerMenu = ({ visible, onClose }) => {
   }, [visible]);
 
   if (!visible) return null;
+
+  // Navigation Handler
+  const handleNavigation = (screenName) => {
+    onClose(); // Close the menu first
+    navigation.navigate(screenName); // Navigate to target screen
+  };
 
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to log out?", [
@@ -84,11 +92,23 @@ const HamburgerMenu = ({ visible, onClose }) => {
         </View>
 
         <View style={styles.menuItems}>
-          <MenuTab icon="notifications-outline" title="Notifications" onPress={onClose} />
-          <MenuTab icon="person-outline" title="Profile" onPress={onClose} />
-          <MenuTab icon="accessibility-outline" title="Accessibility" onPress={onClose} />
-          <MenuTab icon="information-circle-outline" title="About Us" onPress={onClose} />
-          <MenuTab icon="settings-outline" title="Settings" onPress={onClose} />
+          {/* Linked to Notifications Screen */}
+          <MenuTab 
+            icon="notifications-outline" 
+            title="Notifications" 
+            onPress={() => handleNavigation('Notifications')} 
+          />
+          
+          {/* Linked to Profile Screen */}
+          <MenuTab 
+            icon="person-outline" 
+            title="Profile" 
+            onPress={() => handleNavigation('Profile')} 
+          />
+
+          <MenuTab icon="accessibility-outline" title="Accessibility" onPress={() => {}} />
+          <MenuTab icon="information-circle-outline" title="About Us" onPress={() => {}} />
+          <MenuTab icon="settings-outline" title="Settings" onPress={() => {}} />
         </View>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
