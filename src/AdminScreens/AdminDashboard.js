@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   View, 
   Text, 
@@ -6,7 +6,8 @@ import {
   ScrollView, 
   TouchableOpacity, 
   SafeAreaView,
-  Dimensions 
+  Dimensions,
+  Alert 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -15,6 +16,10 @@ import { StatusBar } from 'expo-status-bar';
 import { db } from '../firebase/firebaseConfig';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
+// Context & Components
+import { AuthContext } from '../context/AuthContext';
+import Button from '../components/Button'; 
+
 // Custom Config
 import colors from '../constants/colors';
 import { GlobalStyles } from '../styles/GlobalStyles';
@@ -22,6 +27,7 @@ import { GlobalStyles } from '../styles/GlobalStyles';
 const { width } = Dimensions.get('window');
 
 const AdminDashboard = ({ navigation }) => {
+  const { logout } = useContext(AuthContext);
   const [stats, setStats] = useState({
     pending: 0,
     totalHalls: 0,
@@ -29,19 +35,19 @@ const AdminDashboard = ({ navigation }) => {
   });
 
   useEffect(() => {
-    // Listen for Pending Bookings Count
-    const qPending = query(collection(db, 'bookings'), where('status', '==', 'pending'));
+    // UPDATED: Matches your "Pending" capitalization in Firestore
+    const qPending = query(collection(db, 'bookings'), where('status', '==', 'Pending'));
     const unsubPending = onSnapshot(qPending, (snap) => {
       setStats(prev => ({ ...prev, pending: snap.size }));
     });
 
-    // Listen for Total Halls Count
     const unsubHalls = onSnapshot(collection(db, 'halls'), (snap) => {
       setStats(prev => ({ ...prev, totalHalls: snap.size }));
     });
 
-    // Listen for Total Bookings
-    const unsubTotal = onSnapshot(collection(db, 'bookings'), (snap) => {
+    // Count only Approved bookings for the "Total Booked" stat
+    const qApproved = query(collection(db, 'bookings'), where('status', '==', 'Approved'));
+    const unsubTotal = onSnapshot(qApproved, (snap) => {
       setStats(prev => ({ ...prev, totalBookings: snap.size }));
     });
 
@@ -52,6 +58,13 @@ const AdminDashboard = ({ navigation }) => {
     };
   }, []);
 
+  const handleLogout = () => {
+    Alert.alert("Logout", "Are you sure you want to log out from the Admin Panel?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Logout", style: "destructive", onPress: () => logout() }
+    ]);
+  };
+
   const adminActions = [
     { 
       title: 'Pending Requests', 
@@ -60,6 +73,13 @@ const AdminDashboard = ({ navigation }) => {
       screen: 'AdminRequests', 
       color: '#FF9800',
       badge: stats.pending 
+    },
+    { 
+      title: 'Current Bookings', // UPDATED
+      desc: 'View Active Schedules', // UPDATED
+      icon: 'calendar', // UPDATED
+      screen: 'CurrentBookings', // UPDATED to match your new screen
+      color: '#9C27B0' // Purple color for distinction
     },
     { 
       title: 'Manage Halls', 
@@ -75,37 +95,28 @@ const AdminDashboard = ({ navigation }) => {
       screen: 'AddHall', 
       color: '#4CAF50' 
     },
-    { 
-      title: 'Booking History', 
-      desc: 'All Past Records', 
-      icon: 'list-circle', 
-      screen: 'AdminHistory', 
-      color: colors.gray 
-    },
   ];
 
   return (
     <View style={GlobalStyles.container}>
       <StatusBar style="dark" />
       
-      {/* Header Section */}
       <View style={styles.header}>
         <SafeAreaView>
           <View style={styles.headerContent}>
             <View>
-              <Text style={styles.welcomeText}>Welcome back,</Text>
-              <Text style={styles.adminName}>System Admin</Text>
+              <Text style={styles.welcomeText}>System Control,</Text>
+              <Text style={styles.adminName}>Administrator</Text>
             </View>
-            <TouchableOpacity style={styles.profileBtn} onPress={() => navigation.navigate('Profile')}>
-              <Ionicons name="person-circle" size={50} color={colors.black} />
-            </TouchableOpacity>
+            <View style={styles.iconCircleHeader}>
+                <Ionicons name="shield-checkmark" size={35} color={colors.black} />
+            </View>
           </View>
         </SafeAreaView>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
         
-        {/* Quick Stats Overview */}
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{stats.totalHalls}</Text>
@@ -117,13 +128,12 @@ const AdminDashboard = ({ navigation }) => {
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{stats.totalBookings}</Text>
-            <Text style={styles.statLabel}>Total Booked</Text>
+            <Text style={styles.statLabel}>Approved</Text>
           </View>
         </View>
 
         <Text style={styles.sectionTitle}>Management Console</Text>
 
-        {/* Action Grid */}
         <View style={styles.grid}>
           {adminActions.map((item, index) => (
             <TouchableOpacity 
@@ -150,6 +160,16 @@ const AdminDashboard = ({ navigation }) => {
             </TouchableOpacity>
           ))}
         </View>
+
+        <View style={styles.logoutContainer}>
+            <Button 
+                title="Log out" 
+                onPress={handleLogout} 
+                style={styles.logoutBtnStyle}
+            />
+            <Text style={styles.versionText}>v1.0.5 - Admin Portal</Text>
+        </View>
+
       </ScrollView>
     </View>
   );
@@ -157,7 +177,7 @@ const AdminDashboard = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: colors.secondary, // Your brand yellow
+    backgroundColor: colors.secondary,
     paddingHorizontal: 20,
     paddingBottom: 30,
     borderBottomLeftRadius: 30,
@@ -171,12 +191,20 @@ const styles = StyleSheet.create({
   },
   welcomeText: { fontSize: 16, color: '#555' },
   adminName: { fontSize: 24, fontWeight: 'bold', color: colors.black },
-  scrollBody: { padding: 20 },
+  iconCircleHeader: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  scrollBody: { padding: 20, paddingBottom: 40 },
   statsContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row', 
     justifyContent: 'space-between',
     marginBottom: 30,
-    marginTop: -15, // Lift stats slightly into the yellow header area
+    marginTop: -15,
   },
   statBox: {
     backgroundColor: colors.white,
@@ -192,7 +220,7 @@ const styles = StyleSheet.create({
   statNumber: { fontSize: 20, fontWeight: 'bold', color: colors.black },
   statLabel: { fontSize: 10, color: colors.gray, marginTop: 5, textAlign: 'center' },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: colors.text },
-  grid: { gap: 15 },
+  grid: { gap: 15, marginBottom: 30 },
   actionCard: {
     backgroundColor: colors.white,
     flexDirection: 'row',
@@ -221,7 +249,20 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   badgeText: { color: colors.white, fontSize: 12, fontWeight: 'bold' },
-  arrow: { marginLeft: 5 }
+  arrow: { marginLeft: 5 },
+  logoutContainer: {
+    marginTop: 10,
+    alignItems: 'center'
+  },
+  logoutBtnStyle: {
+    width: '100%',
+    backgroundColor: colors.primary 
+  },
+  versionText: {
+    marginTop: 15,
+    fontSize: 12,
+    color: colors.gray
+  }
 });
 
 export default AdminDashboard;

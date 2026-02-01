@@ -13,10 +13,9 @@ import { StatusBar } from 'expo-status-bar';
 
 // Firebase
 import { db } from '../firebase/firebaseConfig';
-import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 // Utils & Components
-import { sendNotification } from '../utils/notificationService';
 import colors from '../constants/colors';
 import { GlobalStyles } from '../styles/GlobalStyles';
 
@@ -25,8 +24,7 @@ const AdminRequests = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Listen for ONLY pending bookings
-    const q = query(collection(db, 'bookings'), where('status', '==', 'pending'));
+    const q = query(collection(db, 'bookings'), where('status', '==', 'Pending'));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
@@ -45,7 +43,9 @@ const AdminRequests = ({ navigation }) => {
     
     Alert.alert(
       `${actionType} Request`,
-      `Are you sure you want to ${actionType.toLowerCase()} this booking for ${item.hallName}?`,
+      isApprove 
+        ? `Approve this booking for ${item.hallName}?` 
+        : `Decline and DELETE this request?`,
       [
         { text: "Cancel", style: "cancel" },
         { 
@@ -53,22 +53,18 @@ const AdminRequests = ({ navigation }) => {
           style: isApprove ? "default" : "destructive",
           onPress: async () => {
             try {
-              // 1. Update status in the booking document
               const bookingRef = doc(db, 'bookings', item.id);
-              await updateDoc(bookingRef, { status: isApprove ? 'Approved' : 'Declined' });
 
-              // 2. Trigger Automatic Notification to the user
-              await sendNotification(
-                item.userId,
-                isApprove ? 'Approved' : 'Declined',
-                isApprove ? 'Booking Approved! ✅' : 'Booking Declined ❌',
-                isApprove 
-                  ? `Your booking for ${item.hallName} on ${item.date} has been confirmed.`
-                  : `Unfortunately, your request for ${item.hallName} was declined.`
-              );
+              if (isApprove) {
+                await updateDoc(bookingRef, { status: 'Approved' });
+                Alert.alert("Success", "Booking approved successfully.");
+              } else {
+                await deleteDoc(bookingRef);
+                Alert.alert("Deleted", "Request has been removed.");
+              }
 
             } catch (error) {
-              Alert.alert("Error", "Failed to update request.");
+              Alert.alert("Error", "Failed to process request.");
               console.error(error);
             }
           }
@@ -86,21 +82,24 @@ const AdminRequests = ({ navigation }) => {
         </View>
       </View>
 
-      <View style={styles.detailsGrid}>
-        <DetailItem icon="person-outline" label="User" value={item.userName || "Student"} />
-        <DetailItem icon="calendar-outline" label="Date" value={item.date} />
-        <DetailItem icon="time-outline" label="Time" value={`${item.time} hr`} />
-        <DetailItem icon="people-outline" label="Students" value={item.students} />
-      </View>
+      {/* Added "For" before eventName */}
+      <Text style={styles.eventTitle}>For {item.eventName}</Text>
 
-      <Text style={styles.subjectText}>Subject: {item.subject}</Text>
+      <View style={styles.detailsGrid}>
+        <DetailItem icon="person-outline" label="Lecturer" value={item.lecturerName} />
+        <DetailItem icon="calendar-outline" label="Date" value={item.date} />
+        <DetailItem icon="time-outline" label="Time" value={`${item.startTime} - ${item.endTime}`} />
+        <DetailItem icon="people-outline" label="Capacity" value={item.capacity} />
+        <DetailItem icon="location-outline" label="Location" value={item.location} />
+        <DetailItem icon="call-outline" label="Contact" value={item.contact} />
+      </View>
 
       <View style={styles.buttonRow}>
         <TouchableOpacity 
           style={[styles.actionBtn, styles.declineBtn]} 
           onPress={() => handleAction(item, 'Decline')}
         >
-          <Ionicons name="close-circle-outline" size={20} color={colors.primary} />
+          <Ionicons name="trash-outline" size={20} color={colors.primary} />
           <Text style={styles.declineText}>Decline</Text>
         </TouchableOpacity>
 
@@ -137,7 +136,7 @@ const AdminRequests = ({ navigation }) => {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="checkmark-done-circle-outline" size={80} color="#CCC" />
-              <Text style={styles.emptyText}>All caught up! No pending requests.</Text>
+              <Text style={styles.emptyText}>No pending requests.</Text>
             </View>
           }
         />
@@ -174,17 +173,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EEE'
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  hallTitle: { fontSize: 18, fontWeight: 'bold' },
-  pendingBadge: { backgroundColor: '#FFF3E0', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
+  hallTitle: { fontSize: 14, fontWeight: 'bold', color: colors.black, textTransform: 'uppercase' },
+  eventTitle: { fontSize: 19, fontWeight: 'bold', color: colors.gray, marginBottom: 12 },
+  pendingBadge: { backgroundColor: '#FFF3E0', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5, alignSelf: 'flex-start' },
   badgeText: { color: '#E65100', fontSize: 10, fontWeight: 'bold' },
-  detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
-  detailItem: { flexDirection: 'row', alignItems: 'center', width: '50%', marginBottom: 5 },
-  detailValue: { marginLeft: 5, fontSize: 13, color: '#444' },
-  subjectText: { fontSize: 14, fontStyle: 'italic', color: '#666', marginBottom: 15 },
-  buttonRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  actionBtn: { flex: 0.48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10 },
-  declineBtn: { borderWidth: 1, borderColor: colors.primary },
+  detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
+  detailItem: { flexDirection: 'row', alignItems: 'center', width: '50%', marginBottom: 8 },
+  detailValue: { marginLeft: 5, fontSize: 12, color: '#444', flexShrink: 1 },
+  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
+  actionBtn: { flex: 0.48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 10 },
+  declineBtn: { borderWidth: 1, borderColor: colors.primary, backgroundColor: '#FFF1F0' },
   approveBtn: { backgroundColor: '#4CAF50' },
   declineText: { color: colors.primary, fontWeight: 'bold', marginLeft: 5 },
   approveText: { color: '#FFF', fontWeight: 'bold', marginLeft: 5 },

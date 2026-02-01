@@ -50,7 +50,7 @@ const ManageHalls = ({ navigation }) => {
   const confirmDelete = (id, name) => {
     Alert.alert(
       "Delete Hall",
-      `Are you sure you want to permanently delete ${name}? This will remove all associated data.`,
+      `Are you sure you want to permanently delete ${name}?`,
       [
         { text: "Cancel", style: "cancel" },
         { 
@@ -72,8 +72,17 @@ const ManageHalls = ({ navigation }) => {
     <View style={styles.hallCard}>
       <View style={styles.cardInfo}>
         <Text style={styles.hallName}>{item.name}</Text>
-        <Text style={styles.hallLocation}>{item.location}</Text>
-        <Text style={styles.hallCapacity}>Capacity: {item.capacity} students</Text>
+        {/* Updated: using item.building instead of location */}
+        <Text style={styles.hallLocation}>{item.building}</Text>
+        {/* Updated: item.capacity already contains "Students" string now */}
+        <Text style={styles.hallCapacity}>Capacity: {item.capacity}</Text>
+        
+        {/* Optional: Show tags to the admin */}
+        <View style={styles.tagContainer}>
+          {item.tags && item.tags.slice(0, 3).map((tag, index) => (
+            <Text key={index} style={styles.tagText}>• {tag}</Text>
+          ))}
+        </View>
       </View>
 
       <View style={styles.cardActions}>
@@ -155,11 +164,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EEE'
   },
-  cardInfo: { flex: 0.6 },
+  cardInfo: { flex: 0.65 },
   hallName: { fontSize: 17, fontWeight: 'bold', marginBottom: 4 },
   hallLocation: { fontSize: 13, color: '#666', marginBottom: 4 },
-  hallCapacity: { fontSize: 12, color: colors.gray },
-  cardActions: { flex: 0.4, alignItems: 'flex-end', justifyContent: 'space-between' },
+  hallCapacity: { fontSize: 12, color: colors.gray, marginBottom: 6 },
+  tagContainer: { flexDirection: 'row', flexWrap: 'wrap' },
+  tagText: { fontSize: 10, color: colors.gray, marginRight: 5 },
+  cardActions: { flex: 0.35, alignItems: 'flex-end', justifyContent: 'space-between' },
   statusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   statusText: { fontSize: 12, fontWeight: 'bold', marginRight: 8 },
   deleteBtn: { 

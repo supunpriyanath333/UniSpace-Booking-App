@@ -14,7 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 
 // Firebase
 import { db } from '../firebase/firebaseConfig';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 
 // Custom Config
 import colors from '../constants/colors';
@@ -24,18 +24,17 @@ const AddHall = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: '',
-    location: '',
+    building: '',
     capacity: '',
-    description: '',
-    tags: '', // Will be stored as an array
+    tags: '', 
   });
 
   const handleAddHall = async () => {
-    const { name, location, capacity, description, tags } = form;
+    const { name, building, capacity, tags } = form;
 
     // Basic Validation
-    if (!name || !location || !capacity) {
-      Alert.alert("Error", "Please fill in all required fields (Name, Location, Capacity).");
+    if (!name || !building || !capacity) {
+      Alert.alert("Error", "Please fill in all required fields (Name, Building, Capacity).");
       return;
     }
 
@@ -45,15 +44,13 @@ const AddHall = ({ navigation }) => {
       // Process tags into an array
       const tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
 
+      // Adding to 'halls' collection with your exact field names and types
       await addDoc(collection(db, "halls"), {
-        name,
-        location,
-        capacity: parseInt(capacity),
-        description,
-        tags: tagArray,
-        isAvailable: true, // Default to available
-        createdAt: serverTimestamp(),
-        imageUrl: "https://via.placeholder.com/300" // Placeholder until you add image upload
+        building: building,           // e.g., "Sumangala Building - Floor 1"
+        capacity: `${capacity} Students`, // e.g., "100 Students"
+        isAvailable: true,            // Boolean
+        name: name,                   // String
+        tags: tagArray                // Array of strings
       });
 
       Alert.alert("Success", "Hall added successfully!", [
@@ -85,48 +82,34 @@ const AddHall = ({ navigation }) => {
         <Text style={styles.label}>Hall Name *</Text>
         <TextInput 
           style={styles.input} 
-          placeholder="e.g. Lecture Hall 01" 
+          placeholder="e.g. Lecture Hall 102" 
           value={form.name}
           onChangeText={(txt) => setForm({...form, name: txt})}
         />
 
-        <Text style={styles.label}>Location / Building *</Text>
+        <Text style={styles.label}>Building & Floor *</Text>
         <TextInput 
           style={styles.input} 
-          placeholder="e.g. Faculty of Engineering" 
-          value={form.location}
-          onChangeText={(txt) => setForm({...form, location: txt})}
+          placeholder="e.g. Sumangala Building - Floor 1" 
+          value={form.building}
+          onChangeText={(txt) => setForm({...form, building: txt})}
         />
 
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Capacity *</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="e.g. 150" 
-              keyboardType="numeric"
-              value={form.capacity}
-              onChangeText={(txt) => setForm({...form, capacity: txt})}
-            />
-          </View>
-        </View>
+        <Text style={styles.label}>Capacity (Number Only) *</Text>
+        <TextInput 
+          style={styles.input} 
+          placeholder="e.g. 100" 
+          keyboardType="numeric"
+          value={form.capacity}
+          onChangeText={(txt) => setForm({...form, capacity: txt})}
+        />
 
         <Text style={styles.label}>Facilities / Tags (comma separated)</Text>
         <TextInput 
           style={styles.input} 
-          placeholder="e.g. AC, Projector, Wi-Fi" 
+          placeholder="e.g. WiFi, Projector, Audio, AC" 
           value={form.tags}
           onChangeText={(txt) => setForm({...form, tags: txt})}
-        />
-
-        <Text style={styles.label}>Description (Optional)</Text>
-        <TextInput 
-          style={[styles.input, styles.textArea]} 
-          placeholder="Add details about the hall..." 
-          multiline 
-          numberOfLines={4}
-          value={form.description}
-          onChangeText={(txt) => setForm({...form, description: txt})}
         />
 
         <TouchableOpacity 
@@ -166,10 +149,9 @@ const styles = StyleSheet.create({
     borderRadius: 12, 
     padding: 12, 
     marginBottom: 20, 
-    fontSize: 15 
+    fontSize: 15,
+    color: colors.black
   },
-  textArea: { height: 100, textAlignVertical: 'top' },
-  row: { flexDirection: 'row', gap: 15 },
   submitBtn: { 
     backgroundColor: '#4CAF50', 
     padding: 16, 
