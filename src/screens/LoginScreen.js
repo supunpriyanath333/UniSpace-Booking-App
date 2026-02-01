@@ -1,5 +1,14 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { 
+  View, 
+  Text, 
+  Image, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  Alert 
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../constants/colors';
 import { AuthContext } from '../context/AuthContext';
@@ -15,6 +24,7 @@ const LoginScreen = ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Destructure login from AuthContext
   const { login } = useContext(AuthContext);
 
   const handleLogin = async () => {
@@ -26,19 +36,22 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true);
     try {
       // 1. Firebase Auth Sign In
-      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
       const user = userCredential.user;
 
-      // 2. Update AuthContext with the user token/info
-      // This will trigger the navigator to switch to MainTabs
-      login(user.stsTokenManager.accessToken); 
+      // 2. Update AuthContext with both Token and Email
+      // This is crucial so MainNavigator can detect if the user is 'admin@hallbook.com'
+      const token = user.uid; // Using UID as the token for consistency
+      const userEmail = user.email;
+
+      await login(token, userEmail); 
       
     } catch (error) {
       console.log(error.code);
       let errorMessage = "Login failed. Please check your credentials.";
       
       if (error.code === 'auth/invalid-email') errorMessage = "Invalid email format.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         errorMessage = "Invalid email or password.";
       }
 
@@ -71,7 +84,7 @@ const LoginScreen = ({ navigation }) => {
       <Text style={styles.label}>Password</Text>
       <View style={styles.passContainer}>
         <TextInput 
-          style={{flex: 1}} 
+          style={{flex: 1, color: colors.black}} 
           placeholder="Enter your password" 
           placeholderTextColor={colors.gray}
           secureTextEntry={!passwordVisible} 
@@ -124,7 +137,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: 'bold' },
   subtitle: { color: colors.gray, fontSize: 16 },
   label: { fontWeight: 'bold', marginTop: 15, marginBottom: 8, fontSize: 14 },
-  input: { borderWidth: 1, borderColor: colors.gray, borderRadius: 12, height: 55, paddingHorizontal: 15 },
+  input: { borderWidth: 1, borderColor: colors.gray, borderRadius: 12, height: 55, paddingHorizontal: 15, color: colors.black },
   passContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.gray, borderRadius: 12, height: 55, paddingHorizontal: 15 },
   forgot: { alignSelf: 'flex-end', marginVertical: 12 },
   forgotText: { fontWeight: 'bold' },
