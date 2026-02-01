@@ -99,7 +99,7 @@ const NotificationsScreen = ({ navigation }) => {
       case 'Cancelled': return { icon: 'close-circle-outline', color: '#E57373' };
       case 'Requested': return { icon: 'reload-outline', color: '#FFB74D' };
       case 'Reminder': return { icon: 'notifications-outline', color: '#64B5F6' };
-      default: return { icon: 'mail-outline', color: colors.gray };
+      default: return { icon: 'close-outline', color: colors.primary };
     }
   };
 
