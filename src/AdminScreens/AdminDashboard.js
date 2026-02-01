@@ -105,26 +105,25 @@ const AdminDashboard = ({ navigation }) => {
       
       <View style={styles.header}>
         <SafeAreaView>
+          {/* logo top left side only */}
+          <Image 
+            source={require('../../assets/logo 1.png')} 
+            style={[styles.logoImage, { marginBottom: 10 }]}
+            resizeMode="contain"
+          />
+          
           <View style={styles.headerContent}>
             <View style={styles.textContainer}>
-              {/* UPDATED: Welcome Text with Colored Brand Name */}
               <Text style={styles.welcomeText}>
                 Welcome to <Text style={styles.redText}>Uni</Text>
                 <Text style={styles.yellowText}>Space</Text> Administrator
               </Text>
               
-              {/* UPDATED: Slogan with Colored Brand Name */}
               <Text style={styles.sloganText}>
                 <Text style={styles.redText}>Uni</Text>
                 <Text style={styles.yellowText}>Space</Text> System Control Dashboard
               </Text>
             </View>
-            
-            <Image 
-              source={require('../../assets/logo 1.png')} 
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
           </View>
         </SafeAreaView>
       </View>
@@ -205,11 +204,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 45,
+    marginTop: 10, // Adjusted from 45 to accommodate logo above
   },
   textContainer: { flex: 1, paddingRight: 10 },
   
-  // Font Styles
   welcomeText: { 
     fontSize: 24, 
     fontWeight: 'bold', 
@@ -223,13 +221,13 @@ const styles = StyleSheet.create({
     fontWeight: '600' 
   },
   
-  // Brand Colors
   redText: { color: colors.primary },
   yellowText: { color: '#907911' },
 
   logoImage: {
     width: 120,
     height: 40,
+    marginTop: 45, // Moved top margin here to maintain safe area spacing
   },
   scrollBody: { padding: 20, paddingBottom: 40 },
   statsContainer: {

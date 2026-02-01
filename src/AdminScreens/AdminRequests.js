@@ -48,12 +48,11 @@ const AdminRequests = ({ navigation }) => {
     return () => unsubscribe();
   }, []);
 
-  // Helper Function for Automatic Notifications
   const sendNotification = async (userId, type, title, message) => {
     try {
       await addDoc(collection(db, 'notifications'), {
         userId: userId,
-        type: type, // 'Approved', 'Declined', etc.
+        type: type,
         title: title,
         message: message,
         isRead: false,
@@ -82,32 +81,24 @@ const AdminRequests = ({ navigation }) => {
               const bookingRef = doc(db, 'bookings', item.id);
 
               if (isApprove) {
-                // 1. Update Booking Status
                 await updateDoc(bookingRef, { status: 'Approved' });
-                
-                // 2. Automatic Notification
                 await sendNotification(
                   item.userId, 
                   'Approved', 
                   'Booking Approved', 
                   `Your booking for ${item.hallName} on ${item.date} has been confirmed.`
                 );
-
                 Alert.alert("Success", "Booking approved and user notified.");
               } else {
-                // 1. Automatic Notification (Send before deleting the record)
                 await sendNotification(
                   item.userId, 
                   'Declined', 
                   'Booking Declined', 
                   `Your request for ${item.hallName} on ${item.date} was declined.`
                 );
-
-                // 2. Delete Request
                 await deleteDoc(bookingRef);
                 Alert.alert("Declined", "Request removed and user notified.");
               }
-
             } catch (error) {
               Alert.alert("Error", "Failed to process request.");
               console.error(error);
@@ -123,7 +114,7 @@ const AdminRequests = ({ navigation }) => {
       <View style={styles.cardHeader}>
         <View style={styles.hallInfo}>
           <Text style={styles.hallTitle}>{item.hallName}</Text>
-          <Text style={styles.locationSubText}>{item.location}</Text>
+          <Text style={styles.locationSubText}>{item.location || 'Faculty Building'}</Text>
         </View>
         <View style={styles.pendingBadge}>
           <Text style={styles.badgeText}>PENDING</Text>
@@ -135,11 +126,11 @@ const AdminRequests = ({ navigation }) => {
       <Text style={styles.eventTitle}>For {item.eventName}</Text>
 
       <View style={styles.detailsGrid}>
-        <DetailItem icon="person-outline" label="Lecturer" value={item.lecturerName} />
-        <DetailItem icon="calendar-outline" label="Date" value={item.date} />
-        <DetailItem icon="time-outline" label="Time" value={`${item.startTime} - ${item.endTime}`} />
-        <DetailItem icon="people-outline" label="Capacity" value={item.capacity} />
-        <DetailItem icon="call-outline" label="Contact" value={item.contact} />
+        <DetailItem icon="person-outline" value={item.lecturerName} />
+        <DetailItem icon="calendar-outline" value={item.date} />
+        <DetailItem icon="time-outline" value={`${item.startTime} - ${item.endTime}`} />
+        <DetailItem icon="people-outline" value={`${item.capacity || 'N/A'}`} />
+        <DetailItem icon="call-outline" value={item.contact || 'No Contact'} />
       </View>
 
       <View style={styles.buttonRow}>
@@ -164,13 +155,23 @@ const AdminRequests = ({ navigation }) => {
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color={colors.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Pending Requests</Text>
-        <View style={{ width: 28 }} /> 
+      {/* Set StatusBar to match the yellow header background */}
+      <StatusBar style="dark" backgroundColor={colors.secondary} />
+      
+      {/* USING GLOBAL HEADER STYLE */}
+      <View style={GlobalStyles.headerWrapper}>
+        <View style={GlobalStyles.headerSection}>
+          <View style={GlobalStyles.headerTopRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={30} color={colors.black} />
+            </TouchableOpacity>
+            
+            <Text style={GlobalStyles.headerTitle}>Pending Requests</Text>
+            
+            {/* Balance the row for centered title */}
+            <View style={{ width: 30 }} /> 
+          </View>
+        </View>
       </View>
 
       {loading ? (
@@ -181,6 +182,7 @@ const AdminRequests = ({ navigation }) => {
           renderItem={renderRequestItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="checkmark-done-circle-outline" size={80} color="#CCC" />
@@ -193,31 +195,24 @@ const AdminRequests = ({ navigation }) => {
   );
 };
 
-const DetailItem = ({ icon, label, value }) => (
+const DetailItem = ({ icon, value }) => (
   <View style={styles.detailItem}>
-    <Ionicons name={icon} size={14} color={colors.gray} />
+    <Ionicons name={icon} size={15} color={colors.gray} />
     <Text style={styles.detailValue}>{value}</Text>
   </View>
 );
 
 const styles = StyleSheet.create({
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
-    paddingTop: 60, 
-    paddingBottom: 20,
-    backgroundColor: colors.secondary 
-  },
-  headerTitle: { fontSize: 20, fontWeight: 'bold' },
-  listContent: { padding: 15 },
+  listContent: { padding: 15, paddingBottom: 30 },
   requestCard: { 
     backgroundColor: '#FFF', 
     borderRadius: 15, 
-    padding: 15, 
+    padding: 18, 
     marginBottom: 15,
     elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     borderWidth: 1,
     borderColor: '#EEE'
   },
@@ -228,21 +223,21 @@ const styles = StyleSheet.create({
     marginBottom: 5 
   },
   hallInfo: { flex: 1 },
-  hallTitle: { fontSize: 15, fontWeight: 'bold', color: colors.black, textTransform: 'uppercase' },
-  locationSubText: { fontSize: 11, color: colors.gray, marginTop: 2 },
-  divider: { height: 1, backgroundColor: '#e0dbdb', marginVertical: 10 },
-  eventTitle: { fontSize: 16, fontWeight: 'bold', color: colors.black, marginBottom: 12 },
-  pendingBadge: { backgroundColor: '#FFF3E0', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5 },
-  badgeText: { color: '#E65100', fontSize: 10, fontWeight: 'bold' },
+  hallTitle: { fontSize: 16, fontWeight: 'bold', color: colors.black, textTransform: 'uppercase' },
+  locationSubText: { fontSize: 12, color: colors.gray, marginTop: 2 },
+  divider: { height: 1, backgroundColor: '#EEE', marginVertical: 12 },
+  eventTitle: { fontSize: 17, fontWeight: 'bold', color: colors.black, marginBottom: 15 },
+  pendingBadge: { backgroundColor: '#FFF3E0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  badgeText: { color: '#E65100', fontSize: 11, fontWeight: 'bold' },
   detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
-  detailItem: { flexDirection: 'row', alignItems: 'center', width: '50%', marginBottom: 8 },
-  detailValue: { marginLeft: 5, fontSize: 12, color: '#444', flexShrink: 1 },
+  detailItem: { flexDirection: 'row', alignItems: 'center', width: '50%', marginBottom: 10 },
+  detailValue: { marginLeft: 8, fontSize: 13, color: '#444' },
   buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
-  actionBtn: { flex: 0.48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 10 },
-  declineBtn: { borderWidth: 1, borderColor: colors.primary, backgroundColor: '#FFF1F0' },
+  actionBtn: { flex: 0.48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 12 },
+  declineBtn: { borderWidth: 1, borderColor: colors.primary, backgroundColor: '#FFF' },
   approveBtn: { backgroundColor: '#4CAF50' },
-  declineText: { color: colors.primary, fontWeight: 'bold', marginLeft: 5 },
-  approveText: { color: '#FFF', fontWeight: 'bold', marginLeft: 5 },
+  declineText: { color: colors.primary, fontWeight: 'bold', marginLeft: 8, fontSize: 15 },
+  approveText: { color: '#FFF', fontWeight: 'bold', marginLeft: 8, fontSize: 15 },
   emptyState: { alignItems: 'center', marginTop: 100 },
   emptyText: { color: colors.gray, marginTop: 10, fontSize: 16 }
 });

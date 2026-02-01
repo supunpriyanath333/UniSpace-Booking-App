@@ -24,6 +24,7 @@ const CurrentBookings = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Only fetch bookings that are already approved
     const q = query(
       collection(db, 'bookings'), 
       where('status', '==', 'Approved')
@@ -35,7 +36,8 @@ const CurrentBookings = ({ navigation }) => {
         ...doc.data(),
       }));
       
-      const sortedData = data.sort((a, b) => b.createdAt - a.createdAt);
+      // Sort manually if createdAt is not yet indexed or available
+      const sortedData = data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
       setBookedHalls(sortedData);
       setLoading(false);
     });
@@ -45,19 +47,18 @@ const CurrentBookings = ({ navigation }) => {
 
   const handleDelete = (id, eventName) => {
     Alert.alert(
-      "Delete Booking",
-      `Are you sure you want to remove the booking for "${eventName}"?`,
+      "Cancel Booking",
+      `Are you sure you want to remove the booking for "${eventName}"? This cannot be undone.`,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: "No, Keep it", style: "cancel" },
         { 
-          text: "Delete", 
+          text: "Yes, Cancel", 
           style: "destructive", 
           onPress: async () => {
             try {
               await deleteDoc(doc(db, 'bookings', id));
-              // Note: onSnapshot will automatically update the list
             } catch (error) {
-              Alert.alert("Error", "Could not delete the booking.");
+              Alert.alert("Error", "Could not remove the booking record.");
             }
           } 
         }
@@ -70,7 +71,7 @@ const CurrentBookings = ({ navigation }) => {
       <View style={styles.cardHeader}>
         <View style={styles.hallInfo}>
           <Text style={styles.hallLabel}>{item.hallName}</Text>
-          <Text style={styles.locationText}>{item.location}</Text>
+          <Text style={styles.locationText}>{item.location || 'Faculty Building'}</Text>
         </View>
         <View style={styles.approvedBadge}>
           <Ionicons name="checkmark-circle" size={14} color="#FFF" />
@@ -118,17 +119,16 @@ const CurrentBookings = ({ navigation }) => {
 
       <View style={styles.footer}>
         <View style={styles.contactInfo}>
-          <Ionicons name="call" size={14} color={colors.primary} />
+          <Ionicons name="call" size={14} color={colors.gray} />
           <Text style={styles.contactText}>{item.contact}</Text>
         </View>
         
-        {/* NEW DELETE OPTION */}
         <TouchableOpacity 
           style={styles.deleteBtn} 
           onPress={() => handleDelete(item.id, item.eventName)}
         >
-          <Ionicons name="trash-outline" size={18} color={colors.primary} />
-          <Text style={styles.deleteText}>Cancel</Text>
+          <Ionicons name="close-circle-outline" size={18} color={colors.primary} />
+          <Text style={styles.deleteText}>Cancel Booking</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -136,14 +136,21 @@ const CurrentBookings = ({ navigation }) => {
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="dark" backgroundColor={colors.secondary} />
       
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color={colors.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Approved Bookings</Text>
-        <View style={{ width: 28 }} /> 
+      {/* GLOBAL HEADER */}
+      <View style={GlobalStyles.headerWrapper}>
+        <View style={GlobalStyles.headerSection}>
+          <View style={GlobalStyles.headerTopRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={30} color={colors.black} />
+            </TouchableOpacity>
+            
+            <Text style={GlobalStyles.headerTitle}>Approved Bookings</Text>
+            
+            <View style={{ width: 30 }} /> 
+          </View>
+        </View>
       </View>
 
       {loading ? (
@@ -168,19 +175,9 @@ const CurrentBookings = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
-    paddingTop: 60, 
-    paddingBottom: 20,
-    backgroundColor: colors.secondary 
-  },
-  headerTitle: { fontSize: 20, fontWeight: 'bold' },
-  listContent: { padding: 15 },
+  listContent: { padding: 15, paddingBottom: 30 },
   bookingCard: { 
-    backgroundColor: '#FFF', 
+    backgroundColor: colors.white, 
     borderRadius: 20, 
     padding: 18, 
     marginBottom: 16,
@@ -197,51 +194,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12
   },
-  hallLabel: { fontSize: 14, fontWeight: 'bold', color: colors.black, textTransform: 'uppercase' },
-  locationText: { fontSize: 11, color: '#757373' },
+  hallLabel: { fontSize: 15, fontWeight: 'bold', color: colors.black, textTransform: 'uppercase' },
+  locationText: { fontSize: 12, color: colors.gray },
   approvedBadge: { 
     backgroundColor: '#4CAF50', 
     flexDirection: 'row', 
     alignItems: 'center', 
     paddingHorizontal: 10, 
-    paddingVertical: 4, 
+    paddingVertical: 5, 
     borderRadius: 12 
   },
   approvedText: { color: '#FFF', fontSize: 10, fontWeight: 'bold', marginLeft: 4 },
-  divider: { height: 1, backgroundColor: '#b9b4b4', marginBottom: 10 },
-  eventTitle: { fontSize: 16, fontWeight: 'bold', color: colors.black, marginBottom: 15 },
-  detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 15 },
+  divider: { height: 1, backgroundColor: '#EEE', marginBottom: 15 },
+  eventTitle: { fontSize: 18, fontWeight: 'bold', color: colors.black, marginBottom: 15 },
+  detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 15 },
   detailBox: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    width: '45%', 
-    marginBottom: 10 
+    width: '50%', 
   },
   detailTextGroup: { marginLeft: 10 },
-  detailLabel: { fontSize: 10, color: '#999', textTransform: 'uppercase' },
-  detailValue: { fontSize: 12, fontWeight: '600', color: '#444' },
+  detailLabel: { fontSize: 10, color: colors.gray, textTransform: 'uppercase', letterSpacing: 0.5 },
+  detailValue: { fontSize: 13, fontWeight: '600', color: '#333' },
   footer: { 
-    marginTop: 10, 
-    paddingTop: 10, 
+    marginTop: 15, 
+    paddingTop: 15, 
     borderTopWidth: 1, 
-    borderTopColor: '#dddcdc',
+    borderTopColor: '#F0F0F0',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
   },
   contactInfo: { flexDirection: 'row', alignItems: 'center' },
-  contactText: { fontSize: 12, color: colors.gray, marginLeft: 5 },
+  contactText: { fontSize: 13, color: colors.gray, marginLeft: 6 },
   deleteBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     backgroundColor: '#FFF1F0', 
-    paddingHorizontal: 10, 
-    paddingVertical: 5, 
-    borderRadius: 8,
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: colors.primary + '30'
+    borderColor: colors.primary + '20'
   },
-  deleteText: { color: colors.primary, fontSize: 12, fontWeight: 'bold', marginLeft: 4 },
+  deleteText: { color: colors.primary, fontSize: 12, fontWeight: 'bold', marginLeft: 6 },
   emptyState: { alignItems: 'center', marginTop: 100 },
   emptyText: { color: colors.gray, marginTop: 10, fontSize: 16 }
 });

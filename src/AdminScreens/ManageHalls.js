@@ -74,7 +74,6 @@ const ManageHalls = ({ navigation }) => {
           <Text style={styles.hallName}>{item.name}</Text>
           
           <View style={styles.iconRow}>
-            {/* UPDATED: Location Icon */}
             <Ionicons name="location-outline" size={16} color={colors.gray} />
             <Text style={styles.hallLocation}>{item.building}</Text>
           </View>
@@ -106,7 +105,6 @@ const ManageHalls = ({ navigation }) => {
             />
           </View>
 
-          {/* UPDATED: Delete Button with Text & Icon */}
           <TouchableOpacity 
             style={styles.deleteBtn} 
             onPress={() => confirmDelete(item.id, item.name)}
@@ -121,15 +119,23 @@ const ManageHalls = ({ navigation }) => {
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color={colors.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manage Halls</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('AddHall')}>
-          <Ionicons name="add-circle" size={32} color={colors.primary} />
-        </TouchableOpacity>
+      <StatusBar style="dark" backgroundColor={colors.secondary} />
+      
+      {/* GLOBAL HEADER */}
+      <View style={GlobalStyles.headerWrapper}>
+        <View style={GlobalStyles.headerSection}>
+          <View style={GlobalStyles.headerTopRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={30} color={colors.black} />
+            </TouchableOpacity>
+            
+            <Text style={GlobalStyles.headerTitle}>Manage Halls</Text>
+            
+            <TouchableOpacity onPress={() => navigation.navigate('AddHall')}>
+              <Ionicons name="add-circle" size={34} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
 
       {loading ? (
@@ -154,17 +160,7 @@ const ManageHalls = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
-    paddingTop: 60, 
-    paddingBottom: 20,
-    backgroundColor: colors.secondary 
-  },
-  headerTitle: { fontSize: 22, fontWeight: 'bold' },
-  listContent: { padding: 15 },
+  listContent: { padding: 15, paddingBottom: 30 },
   hallCard: { 
     backgroundColor: '#FFF', 
     borderRadius: 16, 
@@ -192,18 +188,18 @@ const styles = StyleSheet.create({
   hallCapacity: { fontSize: 13, color: '#666', marginLeft: 6 },
   tagContainer: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
   tagPill: { 
-    backgroundColor: '#F0F0F0', 
+    backgroundColor: '#F5F5F5', 
     paddingHorizontal: 10, 
     paddingVertical: 4, 
     borderRadius: 20, 
     marginRight: 6,
-    marginBottom: 6
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#EEE'
   },
   tagText: { fontSize: 10, color: '#555', fontWeight: '600' },
   switchWrapper: { alignItems: 'center' },
   statusLabel: { fontSize: 10, fontWeight: '900', marginBottom: 2 },
-  
-  // Updated Delete Button Styles
   deleteBtn: { 
     flexDirection: 'row',
     alignItems: 'center',
@@ -211,7 +207,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, 
     paddingVertical: 8, 
     borderRadius: 8,
-    marginTop: 10
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.primary + '10'
   },
   deleteText: { 
     color: colors.primary, 
@@ -219,7 +217,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     marginLeft: 6 
   },
-  
   emptyState: { alignItems: 'center', marginTop: 100 },
   emptyText: { color: colors.gray, fontSize: 16, marginTop: 10 }
 });

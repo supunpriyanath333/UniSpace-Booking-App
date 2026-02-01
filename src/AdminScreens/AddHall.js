@@ -6,8 +6,7 @@ import {
   TextInput, 
   TouchableOpacity, 
   ScrollView, 
-  Alert, 
-  ActivityIndicator 
+  Alert 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -16,8 +15,8 @@ import { StatusBar } from 'expo-status-bar';
 import { db } from '../firebase/firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 
-// Context & Components
-import Button from '../components/Button'; // Imported your Button component
+// Components
+import Button from '../components/Button';
 
 // Custom Config
 import colors from '../constants/colors';
@@ -35,19 +34,16 @@ const AddHall = ({ navigation }) => {
   const handleAddHall = async () => {
     const { name, building, capacity, tags } = form;
 
-    // Basic Validation
     if (!name || !building || !capacity) {
-      Alert.alert("Error", "Please fill in all required fields (Name, Building, Capacity).");
+      Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Process tags into an array
       const tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
 
-      // Adding to 'halls' collection
       await addDoc(collection(db, "halls"), {
         building: building,           
         capacity: `${capacity} Students`, 
@@ -61,7 +57,7 @@ const AddHall = ({ navigation }) => {
       ]);
     } catch (error) {
       console.error("Error adding hall:", error);
-      Alert.alert("Error", "Failed to add hall. Please try again.");
+      Alert.alert("Error", "Failed to add hall.");
     } finally {
       setLoading(false);
     }
@@ -69,15 +65,23 @@ const AddHall = ({ navigation }) => {
 
   return (
     <View style={GlobalStyles.container}>
-      <StatusBar style="dark" />
+      {/* Ensures StatusBar matches the yellow header background */}
+      <StatusBar style="dark" backgroundColor={colors.secondary} />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color={colors.black} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add New Hall</Text>
-        <View style={{ width: 28 }} />
+      {/* GLOBAL HEADER - Using your exact structure */}
+      <View style={GlobalStyles.headerWrapper}>
+        <View style={GlobalStyles.headerSection}>
+          <View style={GlobalStyles.headerTopRow}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={30} color={colors.black} />
+            </TouchableOpacity>
+            
+            <Text style={GlobalStyles.headerTitle}>Add New Hall</Text>
+            
+            {/* Balancing view for center alignment */}
+            <View style={{ width: 30 }} /> 
+          </View>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
@@ -109,18 +113,18 @@ const AddHall = ({ navigation }) => {
 
         <Text style={styles.label}>Facilities / Tags (comma separated)</Text>
         <TextInput 
-          style={styles.input} 
+          style={[styles.input, styles.textArea]} 
           placeholder="e.g. WiFi, Projector, Audio, AC" 
+          multiline={true}
           value={form.tags}
           onChangeText={(txt) => setForm({...form, tags: txt})}
         />
 
-        {/* Updated to use your custom Button component */}
         <View style={styles.buttonWrapper}>
           <Button 
             title={loading ? "Saving..." : "Save Hall"} 
             onPress={handleAddHall}
-            loading={loading} // Assumes your Button component handles a loading prop
+            loading={loading}
             style={styles.submitBtnStyle}
           />
         </View>
@@ -131,33 +135,39 @@ const AddHall = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
-    paddingTop: 60, 
-    paddingBottom: 20,
-    backgroundColor: colors.secondary 
+  formContainer: { 
+    padding: 20, 
+    paddingBottom: 40 
   },
-  headerTitle: { fontSize: 20, fontWeight: 'bold' },
-  formContainer: { padding: 20, paddingBottom: 40 },
-  label: { fontSize: 14, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
+  label: { 
+    fontSize: 15, 
+    fontWeight: 'bold', 
+    color: colors.black, 
+    marginBottom: 8,
+    marginLeft: 4
+  },
   input: { 
     backgroundColor: '#FFF', 
     borderWidth: 1, 
-    borderColor: '#DDD', 
+    borderColor: '#CCC', 
     borderRadius: 12, 
-    padding: 12, 
+    padding: 15, 
     marginBottom: 20, 
-    fontSize: 15,
-    color: colors.black
+    fontSize: 16,
+    color: colors.black,
+    elevation: 1, // Subtle lift
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
   },
   buttonWrapper: {
     marginTop: 10,
   },
   submitBtnStyle: {
-    backgroundColor: colors.primary
+    backgroundColor: colors.primary,
+    height: 55,
+    borderRadius: 12,
   }
 });
 
