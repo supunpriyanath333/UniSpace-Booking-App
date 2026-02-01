@@ -5,14 +5,15 @@ import {
   StyleSheet, 
   FlatList, 
   TouchableOpacity, 
-  ActivityIndicator 
+  ActivityIndicator,
+  Alert 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 
 // Firebase
 import { db } from '../firebase/firebaseConfig';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 
 // Custom Config
 import colors from '../constants/colors';
@@ -23,7 +24,6 @@ const CurrentBookings = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Querying only 'Approved' bookings, ordered by the date they were created
     const q = query(
       collection(db, 'bookings'), 
       where('status', '==', 'Approved')
@@ -35,15 +35,35 @@ const CurrentBookings = ({ navigation }) => {
         ...doc.data(),
       }));
       
-      // Sorting manually in case Firestore index isn't ready for orderBy
       const sortedData = data.sort((a, b) => b.createdAt - a.createdAt);
-      
       setBookedHalls(sortedData);
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
+
+  const handleDelete = (id, eventName) => {
+    Alert.alert(
+      "Delete Booking",
+      `Are you sure you want to remove the booking for "${eventName}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive", 
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, 'bookings', id));
+              // Note: onSnapshot will automatically update the list
+            } catch (error) {
+              Alert.alert("Error", "Could not delete the booking.");
+            }
+          } 
+        }
+      ]
+    );
+  };
 
   const renderBookingItem = ({ item }) => (
     <View style={styles.bookingCard}>
@@ -97,8 +117,19 @@ const CurrentBookings = ({ navigation }) => {
       </View>
 
       <View style={styles.footer}>
-        <Ionicons name="call-outline" size={14} color={colors.primary} />
-        <Text style={styles.contactText}>Contact: {item.contact}</Text>
+        <View style={styles.contactInfo}>
+          <Ionicons name="call" size={14} color={colors.primary} />
+          <Text style={styles.contactText}>{item.contact}</Text>
+        </View>
+        
+        {/* NEW DELETE OPTION */}
+        <TouchableOpacity 
+          style={styles.deleteBtn} 
+          onPress={() => handleDelete(item.id, item.eventName)}
+        >
+          <Ionicons name="trash-outline" size={18} color={colors.primary} />
+          <Text style={styles.deleteText}>Cancel</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -177,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: 12 
   },
   approvedText: { color: '#FFF', fontSize: 10, fontWeight: 'bold', marginLeft: 4 },
-  divider: { height: 1, backgroundColor: '#716d6d', marginBottom: 10 },
+  divider: { height: 1, backgroundColor: '#b9b4b4', marginBottom: 10 },
   eventTitle: { fontSize: 16, fontWeight: 'bold', color: colors.black, marginBottom: 15 },
   detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 15 },
   detailBox: { 
@@ -193,11 +224,24 @@ const styles = StyleSheet.create({
     marginTop: 10, 
     paddingTop: 10, 
     borderTopWidth: 1, 
-    borderTopColor: '#9a9595',
+    borderTopColor: '#dddcdc',
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center'
   },
+  contactInfo: { flexDirection: 'row', alignItems: 'center' },
   contactText: { fontSize: 12, color: colors.gray, marginLeft: 5 },
+  deleteBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#FFF1F0', 
+    paddingHorizontal: 10, 
+    paddingVertical: 5, 
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.primary + '30'
+  },
+  deleteText: { color: colors.primary, fontSize: 12, fontWeight: 'bold', marginLeft: 4 },
   emptyState: { alignItems: 'center', marginTop: 100 },
   emptyText: { color: colors.gray, marginTop: 10, fontSize: 16 }
 });

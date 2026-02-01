@@ -24,6 +24,7 @@ const AdminRequests = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Matches "Pending" capitalization in your Firestore
     const q = query(collection(db, 'bookings'), where('status', '==', 'Pending'));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -76,13 +77,18 @@ const AdminRequests = ({ navigation }) => {
   const renderRequestItem = ({ item }) => (
     <View style={styles.requestCard}>
       <View style={styles.cardHeader}>
-        <Text style={styles.hallTitle}>{item.hallName}</Text>
+        <View style={styles.hallInfo}>
+          <Text style={styles.hallTitle}>{item.hallName}</Text>
+          {/* Location displayed under Hall Name */}
+          <Text style={styles.locationSubText}>{item.location}</Text>
+        </View>
         <View style={styles.pendingBadge}>
           <Text style={styles.badgeText}>PENDING</Text>
         </View>
       </View>
 
-      {/* Added "For" before eventName */}
+      <View style={styles.divider} />
+
       <Text style={styles.eventTitle}>For {item.eventName}</Text>
 
       <View style={styles.detailsGrid}>
@@ -90,7 +96,6 @@ const AdminRequests = ({ navigation }) => {
         <DetailItem icon="calendar-outline" label="Date" value={item.date} />
         <DetailItem icon="time-outline" label="Time" value={`${item.startTime} - ${item.endTime}`} />
         <DetailItem icon="people-outline" label="Capacity" value={item.capacity} />
-        <DetailItem icon="location-outline" label="Location" value={item.location} />
         <DetailItem icon="call-outline" label="Contact" value={item.contact} />
       </View>
 
@@ -173,10 +178,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EEE'
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
-  hallTitle: { fontSize: 14, fontWeight: 'bold', color: colors.black, textTransform: 'uppercase' },
-  eventTitle: { fontSize: 19, fontWeight: 'bold', color: colors.gray, marginBottom: 12 },
-  pendingBadge: { backgroundColor: '#FFF3E0', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5, alignSelf: 'flex-start' },
+  cardHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'flex-start',
+    marginBottom: 5 
+  },
+  hallInfo: { flex: 1 },
+  hallTitle: { fontSize: 15, fontWeight: 'bold', color: colors.black, textTransform: 'uppercase' },
+  locationSubText: { fontSize: 11, color: colors.gray, marginTop: 2 },
+  divider: { height: 1, backgroundColor: '#e0dbdb', marginVertical: 10 },
+  eventTitle: { fontSize: 16, fontWeight: 'bold', color: colors.black, marginBottom: 12 },
+  pendingBadge: { backgroundColor: '#FFF3E0', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 5 },
   badgeText: { color: '#E65100', fontSize: 10, fontWeight: 'bold' },
   detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
   detailItem: { flexDirection: 'row', alignItems: 'center', width: '50%', marginBottom: 8 },

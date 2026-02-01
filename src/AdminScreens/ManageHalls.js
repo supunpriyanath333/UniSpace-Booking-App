@@ -25,7 +25,6 @@ const ManageHalls = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Listen to all halls
     const unsub = onSnapshot(collection(db, 'halls'), (snapshot) => {
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -70,41 +69,52 @@ const ManageHalls = ({ navigation }) => {
 
   const renderHallItem = ({ item }) => (
     <View style={styles.hallCard}>
-      <View style={styles.cardInfo}>
-        <Text style={styles.hallName}>{item.name}</Text>
-        {/* Updated: using item.building instead of location */}
-        <Text style={styles.hallLocation}>{item.building}</Text>
-        {/* Updated: item.capacity already contains "Students" string now */}
-        <Text style={styles.hallCapacity}>Capacity: {item.capacity}</Text>
-        
-        {/* Optional: Show tags to the admin */}
-        <View style={styles.tagContainer}>
-          {item.tags && item.tags.slice(0, 3).map((tag, index) => (
-            <Text key={index} style={styles.tagText}>• {tag}</Text>
-          ))}
-        </View>
-      </View>
+      <View style={styles.cardMain}>
+        <View style={styles.infoSection}>
+          <Text style={styles.hallName}>{item.name}</Text>
+          
+          <View style={styles.iconRow}>
+            {/* UPDATED: Location Icon */}
+            <Ionicons name="location-outline" size={16} color={colors.gray} />
+            <Text style={styles.hallLocation}>{item.building}</Text>
+          </View>
 
-      <View style={styles.cardActions}>
-        <View style={styles.statusRow}>
-          <Text style={[styles.statusText, { color: item.isAvailable ? '#4CAF50' : colors.primary }]}>
-            {item.isAvailable ? "Available" : "Hidden"}
-          </Text>
-          <Switch
-            trackColor={{ false: "#767577", true: "#C8E6C9" }}
-            thumbColor={item.isAvailable ? "#4CAF50" : "#f4f3f4"}
-            onValueChange={() => toggleAvailability(item.id, item.isAvailable)}
-            value={item.isAvailable}
-          />
+          <View style={styles.iconRow}>
+            <Ionicons name="people-outline" size={16} color={colors.gray} />
+            <Text style={styles.hallCapacity}>{item.capacity}</Text>
+          </View>
+          
+          <View style={styles.tagContainer}>
+            {item.tags && item.tags.map((tag, index) => (
+              <View key={index} style={styles.tagPill}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.deleteBtn} 
-          onPress={() => confirmDelete(item.id, item.name)}
-        >
-          <Ionicons name="trash-outline" size={20} color={colors.primary} />
-          <Text style={styles.deleteText}>Delete</Text>
-        </TouchableOpacity>
+        <View style={styles.actionSection}>
+          <View style={styles.switchWrapper}>
+            <Text style={[styles.statusLabel, { color: item.isAvailable ? '#4CAF50' : colors.primary }]}>
+              {item.isAvailable ? "AVAILABLE" : "NOT AVAILABLE"}
+            </Text>
+            <Switch
+              trackColor={{ false: "#EEE", true: "#C8E6C9" }}
+              thumbColor={item.isAvailable ? "#4CAF50" : "#BCBCBC"}
+              onValueChange={() => toggleAvailability(item.id, item.isAvailable)}
+              value={item.isAvailable}
+            />
+          </View>
+
+          {/* UPDATED: Delete Button with Text & Icon */}
+          <TouchableOpacity 
+            style={styles.deleteBtn} 
+            onPress={() => confirmDelete(item.id, item.name)}
+          >
+            <Ionicons name="trash-outline" size={18} color={colors.primary} />
+            <Text style={styles.deleteText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -118,7 +128,7 @@ const ManageHalls = ({ navigation }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Manage Halls</Text>
         <TouchableOpacity onPress={() => navigation.navigate('AddHall')}>
-          <Ionicons name="add-circle" size={30} color={colors.black} />
+          <Ionicons name="add-circle" size={32} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -130,9 +140,11 @@ const ManageHalls = ({ navigation }) => {
           renderItem={renderHallItem}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No halls found. Add one to get started!</Text>
+              <Ionicons name="business-outline" size={60} color="#CCC" />
+              <Text style={styles.emptyText}>No halls found.</Text>
             </View>
           }
         />
@@ -151,39 +163,65 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     backgroundColor: colors.secondary 
   },
-  headerTitle: { fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { fontSize: 22, fontWeight: 'bold' },
   listContent: { padding: 15 },
   hallCard: { 
     backgroundColor: '#FFF', 
-    borderRadius: 15, 
-    padding: 15, 
-    marginBottom: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderRadius: 16, 
+    marginBottom: 16,
     elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     borderWidth: 1,
-    borderColor: '#EEE'
+    borderColor: '#F0F0F0'
   },
-  cardInfo: { flex: 0.65 },
-  hallName: { fontSize: 17, fontWeight: 'bold', marginBottom: 4 },
-  hallLocation: { fontSize: 13, color: '#666', marginBottom: 4 },
-  hallCapacity: { fontSize: 12, color: colors.gray, marginBottom: 6 },
-  tagContainer: { flexDirection: 'row', flexWrap: 'wrap' },
-  tagText: { fontSize: 10, color: colors.gray, marginRight: 5 },
-  cardActions: { flex: 0.35, alignItems: 'flex-end', justifyContent: 'space-between' },
-  statusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  statusText: { fontSize: 12, fontWeight: 'bold', marginRight: 8 },
+  cardMain: {
+    flexDirection: 'row',
+    padding: 16,
+  },
+  infoSection: { flex: 1 },
+  actionSection: { 
+    alignItems: 'flex-end', 
+    justifyContent: 'space-between',
+    paddingLeft: 10
+  },
+  hallName: { fontSize: 18, fontWeight: '800', color: '#333', marginBottom: 6 },
+  iconRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  hallLocation: { fontSize: 13, color: '#666', marginLeft: 6 },
+  hallCapacity: { fontSize: 13, color: '#666', marginLeft: 6 },
+  tagContainer: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
+  tagPill: { 
+    backgroundColor: '#F0F0F0', 
+    paddingHorizontal: 10, 
+    paddingVertical: 4, 
+    borderRadius: 20, 
+    marginRight: 6,
+    marginBottom: 6
+  },
+  tagText: { fontSize: 10, color: '#555', fontWeight: '600' },
+  switchWrapper: { alignItems: 'center' },
+  statusLabel: { fontSize: 10, fontWeight: '900', marginBottom: 2 },
+  
+  // Updated Delete Button Styles
   deleteBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFF1F0', 
     paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 8 
+    paddingVertical: 8, 
+    borderRadius: 8,
+    marginTop: 10
   },
-  deleteText: { color: colors.primary, fontSize: 13, fontWeight: 'bold', marginLeft: 4 },
+  deleteText: { 
+    color: colors.primary, 
+    fontSize: 12, 
+    fontWeight: 'bold', 
+    marginLeft: 6 
+  },
+  
   emptyState: { alignItems: 'center', marginTop: 100 },
-  emptyText: { color: colors.gray, fontSize: 16 }
+  emptyText: { color: colors.gray, fontSize: 16, marginTop: 10 }
 });
 
 export default ManageHalls;

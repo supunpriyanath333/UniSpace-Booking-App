@@ -16,6 +16,9 @@ import { StatusBar } from 'expo-status-bar';
 import { db } from '../firebase/firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 
+// Context & Components
+import Button from '../components/Button'; // Imported your Button component
+
 // Custom Config
 import colors from '../constants/colors';
 import { GlobalStyles } from '../styles/GlobalStyles';
@@ -44,13 +47,13 @@ const AddHall = ({ navigation }) => {
       // Process tags into an array
       const tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
 
-      // Adding to 'halls' collection with your exact field names and types
+      // Adding to 'halls' collection
       await addDoc(collection(db, "halls"), {
-        building: building,           // e.g., "Sumangala Building - Floor 1"
-        capacity: `${capacity} Students`, // e.g., "100 Students"
-        isAvailable: true,            // Boolean
-        name: name,                   // String
-        tags: tagArray                // Array of strings
+        building: building,           
+        capacity: `${capacity} Students`, 
+        isAvailable: true,             
+        name: name,                   
+        tags: tagArray                
       });
 
       Alert.alert("Success", "Hall added successfully!", [
@@ -112,17 +115,15 @@ const AddHall = ({ navigation }) => {
           onChangeText={(txt) => setForm({...form, tags: txt})}
         />
 
-        <TouchableOpacity 
-          style={[styles.submitBtn, loading && { backgroundColor: '#CCC' }]} 
-          onPress={handleAddHall}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.submitText}>Save Hall</Text>
-          )}
-        </TouchableOpacity>
+        {/* Updated to use your custom Button component */}
+        <View style={styles.buttonWrapper}>
+          <Button 
+            title={loading ? "Saving..." : "Save Hall"} 
+            onPress={handleAddHall}
+            loading={loading} // Assumes your Button component handles a loading prop
+            style={styles.submitBtnStyle}
+          />
+        </View>
 
       </ScrollView>
     </View>
@@ -152,15 +153,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.black
   },
-  submitBtn: { 
-    backgroundColor: '#4CAF50', 
-    padding: 16, 
-    borderRadius: 12, 
-    alignItems: 'center', 
+  buttonWrapper: {
     marginTop: 10,
-    elevation: 3 
   },
-  submitText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 }
+  submitBtnStyle: {
+    backgroundColor: colors.primary
+  }
 });
 
 export default AddHall;
