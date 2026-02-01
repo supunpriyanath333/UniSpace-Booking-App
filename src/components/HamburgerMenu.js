@@ -9,12 +9,12 @@ import {
   Alert 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
+import { useNavigation } from '@react-navigation/native';
 
 // Firebase & Context
 import { auth, db } from '../firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { AuthContext } from '../context/AuthContext';
 
 // Custom Configuration
@@ -23,34 +23,51 @@ import colors from '../constants/colors';
 const { width, height } = Dimensions.get('window');
 
 const HamburgerMenu = ({ visible, onClose }) => {
-  const navigation = useNavigation(); // Hook to access navigation
+  const navigation = useNavigation();
   const { logout } = useContext(AuthContext);
   const [userName, setUserName] = useState('Loading...');
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (auth.currentUser) {
+    let unsubscribeUser = () => {};
+    let unsubscribeNotify = () => {};
+
+    if (visible && auth.currentUser) {
+      // 1. Fetch User Data
+      const fetchUserData = async () => {
         try {
           const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
           if (userDoc.exists()) {
             setUserName(userDoc.data().name);
           }
         } catch (error) {
-          console.error("Error fetching user name:", error);
           setUserName("User");
         }
-      }
-    };
+      };
+      fetchUserData();
 
-    if (visible) fetchUserData();
+      // 2. Real-time Unread Notification Count
+      const q = query(
+        collection(db, 'notifications'),
+        where('userId', '==', auth.currentUser.uid),
+        where('isRead', '==', false)
+      );
+
+      unsubscribeNotify = onSnapshot(q, (snapshot) => {
+        setUnreadCount(snapshot.size);
+      });
+    }
+
+    return () => {
+      unsubscribeNotify();
+    };
   }, [visible]);
 
   if (!visible) return null;
 
-  // Navigation Handler
   const handleNavigation = (screenName) => {
-    onClose(); // Close the menu first
-    navigation.navigate(screenName); // Navigate to target screen
+    onClose();
+    navigation.navigate(screenName);
   };
 
   const handleLogout = () => {
@@ -92,14 +109,13 @@ const HamburgerMenu = ({ visible, onClose }) => {
         </View>
 
         <View style={styles.menuItems}>
-          {/* Linked to Notifications Screen */}
           <MenuTab 
             icon="notifications-outline" 
             title="Notifications" 
             onPress={() => handleNavigation('Notifications')} 
+            badgeCount={unreadCount} // Added badgeCount prop
           />
           
-          {/* Linked to Profile Screen */}
           <MenuTab 
             icon="person-outline" 
             title="Profile" 
@@ -119,9 +135,17 @@ const HamburgerMenu = ({ visible, onClose }) => {
   );
 };
 
-const MenuTab = ({ icon, title, onPress }) => (
+// Updated MenuTab with Badge Support
+const MenuTab = ({ icon, title, onPress, badgeCount }) => (
   <TouchableOpacity style={styles.tab} onPress={onPress}>
-    <Ionicons name={icon} size={22} color={colors.black} />
+    <View style={styles.iconContainer}>
+      <Ionicons name={icon} size={22} color={colors.black} />
+      {badgeCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
+        </View>
+      )}
+    </View>
     <Text style={styles.tabText}>{title}</Text>
   </TouchableOpacity>
 );
@@ -180,11 +204,35 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#EEE'
   },
+  iconContainer: {
+    width: 25,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   tabText: { 
     marginLeft: 15, 
     fontWeight: '500', 
     fontSize: 16, 
     color: colors.text 
+  },
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -10,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: colors.white
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: 'bold'
   },
   logoutBtn: { 
     backgroundColor: colors.primary, 

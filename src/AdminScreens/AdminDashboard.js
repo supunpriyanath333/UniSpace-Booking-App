@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   SafeAreaView,
   Dimensions,
-  Alert 
+  Alert,
+  Image 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -35,17 +36,18 @@ const AdminDashboard = ({ navigation }) => {
   });
 
   useEffect(() => {
-    // UPDATED: Matches your "Pending" capitalization in Firestore
+    // Listen for Pending Bookings
     const qPending = query(collection(db, 'bookings'), where('status', '==', 'Pending'));
     const unsubPending = onSnapshot(qPending, (snap) => {
       setStats(prev => ({ ...prev, pending: snap.size }));
     });
 
+    // Listen for Total Halls
     const unsubHalls = onSnapshot(collection(db, 'halls'), (snap) => {
       setStats(prev => ({ ...prev, totalHalls: snap.size }));
     });
 
-    // Count only Approved bookings for the "Total Booked" stat
+    // Listen for Approved Bookings
     const qApproved = query(collection(db, 'bookings'), where('status', '==', 'Approved'));
     const unsubTotal = onSnapshot(qApproved, (snap) => {
       setStats(prev => ({ ...prev, totalBookings: snap.size }));
@@ -75,11 +77,11 @@ const AdminDashboard = ({ navigation }) => {
       badge: stats.pending 
     },
     { 
-      title: 'Current Bookings', // UPDATED
-      desc: 'View Active Schedules', // UPDATED
-      icon: 'calendar', // UPDATED
-      screen: 'CurrentBookings', // UPDATED to match your new screen
-      color: '#9C27B0' // Purple color for distinction
+      title: 'Current Bookings', 
+      desc: 'View Active Schedules', 
+      icon: 'calendar', 
+      screen: 'CurrentBookings', 
+      color: '#9C27B0' 
     },
     { 
       title: 'Manage Halls', 
@@ -104,13 +106,25 @@ const AdminDashboard = ({ navigation }) => {
       <View style={styles.header}>
         <SafeAreaView>
           <View style={styles.headerContent}>
-            <View>
-              <Text style={styles.welcomeText}>System Control,</Text>
-              <Text style={styles.adminName}>Administrator</Text>
+            <View style={styles.textContainer}>
+              {/* UPDATED: Welcome Text with Colored Brand Name */}
+              <Text style={styles.welcomeText}>
+                Welcome to <Text style={styles.redText}>Uni</Text>
+                <Text style={styles.yellowText}>Space</Text> Administrator
+              </Text>
+              
+              {/* UPDATED: Slogan with Colored Brand Name */}
+              <Text style={styles.sloganText}>
+                <Text style={styles.redText}>Uni</Text>
+                <Text style={styles.yellowText}>Space</Text> System Control Dashboard
+              </Text>
             </View>
-            <View style={styles.iconCircleHeader}>
-                <Ionicons name="shield-checkmark" size={35} color={colors.black} />
-            </View>
+            
+            <Image 
+              source={require('../../assets/logo 1.png')} 
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
         </SafeAreaView>
       </View>
@@ -180,24 +194,42 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
     paddingHorizontal: 20,
     paddingBottom: 30,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+    borderColor: '#1b1515',
+    borderBottomWidth: 0.5,
+    borderWidth: 0.5,
+    marginBottom: 10
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 45,
   },
-  welcomeText: { fontSize: 16, color: '#555' },
-  adminName: { fontSize: 24, fontWeight: 'bold', color: colors.black },
-  iconCircleHeader: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center'
+  textContainer: { flex: 1, paddingRight: 10 },
+  
+  // Font Styles
+  welcomeText: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    color: colors.black,
+    lineHeight: 26 
+  },
+  sloganText: { 
+    fontSize: 14, 
+    color: '#666', 
+    marginTop: 4,
+    fontWeight: '600' 
+  },
+  
+  // Brand Colors
+  redText: { color: colors.primary },
+  yellowText: { color: '#907911' },
+
+  logoImage: {
+    width: 120,
+    height: 40,
   },
   scrollBody: { padding: 20, paddingBottom: 40 },
   statsContainer: {
@@ -220,7 +252,7 @@ const styles = StyleSheet.create({
   statNumber: { fontSize: 20, fontWeight: 'bold', color: colors.black },
   statLabel: { fontSize: 10, color: colors.gray, marginTop: 5, textAlign: 'center' },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: colors.text },
-  grid: { gap: 15, marginBottom: 30 },
+  grid: { marginBottom: 30 },
   actionCard: {
     backgroundColor: colors.white,
     flexDirection: 'row',
@@ -230,6 +262,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EEE',
     elevation: 2,
+    marginBottom: 15,
   },
   iconCircle: {
     width: 55,

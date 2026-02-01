@@ -13,7 +13,7 @@ import { db, auth } from '../firebase/firebaseConfig';
 import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 
 // Custom Configuration
-import colors from '../constants/colors'; // Added color constants
+import colors from '../constants/colors'; 
 import { GlobalStyles } from '../styles/GlobalStyles';
 import HamburgerMenu from '../components/HamburgerMenu';
 import Button from '../components/Button';
@@ -58,6 +58,22 @@ const BookingForm = ({ route, navigation }) => {
     return t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
+  // Helper Function for Automatic Notifications
+  const sendNotification = async (userId, type, title, message) => {
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        userId: userId,
+        type: type, // Matches: 'Requested', 'Approved', etc.
+        title: title,
+        message: message,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Notification Error:", error);
+    }
+  };
+
   const handleBooking = async () => {
     const user = auth.currentUser;
     if (!user) {
@@ -65,20 +81,24 @@ const BookingForm = ({ route, navigation }) => {
       return;
     }
 
-    if (!startTime || !endTime) {
-        Alert.alert("Error", "Please select start and end times.");
+    if (!startTime || !endTime || !eventName) {
+        Alert.alert("Error", "Please fill in all required fields.");
         return;
     }
 
     setLoading(true);
     try {
+      const bookingDate = formatDate(date);
+      const startT = formatTimeAMPM(startTime);
+
+      // 1. Create the Booking Record
       await addDoc(collection(db, 'bookings'), {
         userId: user.uid, 
         hallId: hall?.id || 'JClKB5tOvypOHY6ole',
         hallName: hall?.name || 'Lecture Hall 102',
         location: hall?.building || 'Sumangala Building - Floor 1',
-        date: formatDate(date),
-        startTime: formatTimeAMPM(startTime),
+        date: bookingDate,
+        startTime: startT,
         endTime: formatTimeAMPM(endTime),
         eventName, 
         lecturerName, 
@@ -87,16 +107,25 @@ const BookingForm = ({ route, navigation }) => {
         status: 'Pending', 
         createdAt: serverTimestamp()
       });
+
+      // 2. TRIGGER AUTOMATIC NOTIFICATION
+      await sendNotification(
+        user.uid,
+        'Requested',
+        'Booking Requested',
+        `Your booking request for ${hall?.name || 'Lecture Hall'} on ${bookingDate} at ${startT} has been successfully created.`
+      );
+
       setShowSuccessModal(true);
     } catch (e) {
       Alert.alert("Error", "Booking failed.");
+      console.error(e);
     }
     setLoading(false);
   };
 
   return (
     <View style={GlobalStyles.container}>
-      {/* Background matches headerWrapper */}
       <StatusBar style="dark" backgroundColor={colors.secondary} />
       <HamburgerMenu visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
@@ -115,7 +144,6 @@ const BookingForm = ({ route, navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
-        {/* Hall Info Card */}
         <View style={styles.card}>
           <Text style={styles.hallTitle}>{hall?.name || "Lecture Hall 102"}</Text>
           <View style={styles.iconRow}>
@@ -128,7 +156,6 @@ const BookingForm = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Date & Time Selection Card */}
         <View style={styles.card}>
           <View style={styles.sectionHeader}>
             <Ionicons name="calendar-outline" size={20} color={colors.black} />
@@ -160,7 +187,6 @@ const BookingForm = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Purpose Form Card */}
         <View style={styles.card}>
           <View style={styles.sectionHeader}>
             <Ionicons name="reader-outline" size={20} color={colors.black} />

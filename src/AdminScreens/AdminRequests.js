@@ -13,7 +13,17 @@ import { StatusBar } from 'expo-status-bar';
 
 // Firebase
 import { db } from '../firebase/firebaseConfig';
-import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  doc, 
+  updateDoc, 
+  deleteDoc, 
+  addDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
 
 // Utils & Components
 import colors from '../constants/colors';
@@ -24,7 +34,6 @@ const AdminRequests = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Matches "Pending" capitalization in your Firestore
     const q = query(collection(db, 'bookings'), where('status', '==', 'Pending'));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -39,6 +48,22 @@ const AdminRequests = ({ navigation }) => {
     return () => unsubscribe();
   }, []);
 
+  // Helper Function for Automatic Notifications
+  const sendNotification = async (userId, type, title, message) => {
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        userId: userId,
+        type: type, // 'Approved', 'Declined', etc.
+        title: title,
+        message: message,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Notification Error:", error);
+    }
+  };
+
   const handleAction = async (item, actionType) => {
     const isApprove = actionType === 'Approve';
     
@@ -46,7 +71,7 @@ const AdminRequests = ({ navigation }) => {
       `${actionType} Request`,
       isApprove 
         ? `Approve this booking for ${item.hallName}?` 
-        : `Decline and DELETE this request?`,
+        : `Decline and remove this request?`,
       [
         { text: "Cancel", style: "cancel" },
         { 
@@ -57,18 +82,37 @@ const AdminRequests = ({ navigation }) => {
               const bookingRef = doc(db, 'bookings', item.id);
 
               if (isApprove) {
+                // 1. Update Booking Status
                 await updateDoc(bookingRef, { status: 'Approved' });
-                Alert.alert("Success", "Booking approved successfully.");
+                
+                // 2. Automatic Notification
+                await sendNotification(
+                  item.userId, 
+                  'Approved', 
+                  'Booking Approved', 
+                  `Your booking for ${item.hallName} on ${item.date} has been confirmed.`
+                );
+
+                Alert.alert("Success", "Booking approved and user notified.");
               } else {
+                // 1. Automatic Notification (Send before deleting the record)
+                await sendNotification(
+                  item.userId, 
+                  'Declined', 
+                  'Booking Declined', 
+                  `Your request for ${item.hallName} on ${item.date} was declined.`
+                );
+
+                // 2. Delete Request
                 await deleteDoc(bookingRef);
-                Alert.alert("Deleted", "Request has been removed.");
+                Alert.alert("Declined", "Request removed and user notified.");
               }
 
             } catch (error) {
               Alert.alert("Error", "Failed to process request.");
               console.error(error);
             }
-          }
+          } 
         }
       ]
     );
@@ -79,7 +123,6 @@ const AdminRequests = ({ navigation }) => {
       <View style={styles.cardHeader}>
         <View style={styles.hallInfo}>
           <Text style={styles.hallTitle}>{item.hallName}</Text>
-          {/* Location displayed under Hall Name */}
           <Text style={styles.locationSubText}>{item.location}</Text>
         </View>
         <View style={styles.pendingBadge}>

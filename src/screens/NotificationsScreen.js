@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -6,10 +6,25 @@ import {
   ScrollView, 
   TouchableOpacity, 
   SafeAreaView,
+  ActivityIndicator,
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+
+// Firebase Imports
+import { db, auth } from '../firebase/firebaseConfig';
+import { 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  orderBy, 
+  doc, 
+  updateDoc, 
+  deleteDoc,
+  writeBatch 
+} from 'firebase/firestore';
 
 // Custom Configuration
 import colors from '../constants/colors';
@@ -18,88 +33,73 @@ import HamburgerMenu from '../components/HamburgerMenu';
 
 const NotificationsScreen = ({ navigation }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: '1',
-      type: 'Approved',
-      title: 'Booking Approved',
-      message: 'Your booking for Lecture Hall 101 on Jan 31, 2026 at 9:00 AM has been confirmed.',
-      time: '13 Hours ago',
-      isRead: false,
-    },
-    {
-      id: '2',
-      type: 'Cancelled',
-      title: 'Booking Cancelled',
-      message: 'Your booking for Lecture Hall 105 on Jan 28, 2026 has been cancelled.',
-      time: '18 Hours ago',
-      isRead: false,
-    },
-    {
-      id: '3',
-      type: 'Requested',
-      title: 'Booking Requested',
-      message: 'Your booking request has been successfully created for Lecture Hall 101 on Jan 31, 2026 at 9:00 AM. It will be approved shortly.',
-      time: '1 day ago',
-      isRead: true,
-    },
-    {
-      id: '4',
-      type: 'Reminder',
-      title: 'Booking Reminder',
-      message: 'You have a booking for Lecture Hall 201 tomorrow at 11:00 AM.',
-      time: '2 days ago',
-      isRead: true,
-    },
-    {
-      id: '5',
-      type: 'Declined',
-      title: 'Booking Declined',
-      message: 'Your booking for Lecture Hall 102 on Feb 05, 2026 has been declined due to maintenance.',
-      time: '3 days ago',
-      isRead: true,
-    }
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // 1. Mark All as Read
-  const handleMarkAllAsRead = () => {
-    const updatedNotifs = notifications.map(notif => ({ ...notif, isRead: true }));
-    setNotifications(updatedNotifs);
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const q = query(
+      collection(db, 'notifications'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const notifyData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setNotifications(notifyData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Helper: Relative Time
+  const getTimeAgo = (timestamp) => {
+    if (!timestamp) return 'Just now';
+    const seconds = Math.floor((new Date() - timestamp.toDate()) / 1000);
+    let interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return interval === 1 ? '1 day ago' : `${interval} days ago`;
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return interval === 1 ? '1 hour ago' : `${interval} hours ago`;
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return interval === 1 ? '1 minute ago' : `${interval} minutes ago`;
+    return `Just now`;
   };
 
-  // 2. Mark Single as Read on Press
-  const markAsRead = (id) => {
-    setNotifications(prev => 
-      prev.map(notif => notif.id === id ? { ...notif, isRead: true } : notif)
+  const handleMarkAllAsRead = async () => {
+    const batch = writeBatch(db);
+    notifications.filter(n => !n.isRead).forEach(n => 
+      batch.update(doc(db, 'notifications', n.id), { isRead: true })
     );
+    await batch.commit();
   };
 
-  // 3. Delete Notification
-  const deleteNotification = (id) => {
-    Alert.alert(
-      "Delete Notification",
-      "Are you sure you want to remove this notification?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive", 
-          onPress: () => {
-            setNotifications(prev => prev.filter(notif => notif.id !== id));
-          } 
-        }
-      ]
-    );
+  const markAsRead = async (id, currentStatus) => {
+    if (currentStatus) return;
+    await updateDoc(doc(db, 'notifications', id), { isRead: true });
+  };
+
+  const handleDelete = (id) => {
+    Alert.alert("Delete", "Remove this notification?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: async () => {
+          await deleteDoc(doc(db, 'notifications', id));
+      }}
+    ]);
   };
 
   const getNotificationConfig = (type) => {
     switch (type) {
-      case 'Approved': return { icon: 'checkmark-circle', color: '#4CAF50' };
-      case 'Cancelled':
-      case 'Declined': return { icon: 'close-circle', color: colors.primary };
-      case 'Requested': return { icon: 'sync-outline', color: '#FF9800' };
-      case 'Reminder': return { icon: 'notifications', color: '#2196F3' };
-      default: return { icon: 'chatbubble-outline', color: colors.gray };
+      case 'Approved': return { icon: 'checkmark-circle-outline', color: '#81C784' };
+      case 'Cancelled': return { icon: 'close-circle-outline', color: '#E57373' };
+      case 'Requested': return { icon: 'reload-outline', color: '#FFB74D' };
+      case 'Reminder': return { icon: 'notifications-outline', color: '#64B5F6' };
+      default: return { icon: 'mail-outline', color: colors.gray };
     }
   };
 
@@ -126,75 +126,89 @@ const NotificationsScreen = ({ navigation }) => {
 
       <View style={styles.utilityRow}>
         <TouchableOpacity style={styles.checkboxContainer} onPress={handleMarkAllAsRead}>
-          <Ionicons name="checkmark-done-all" size={22} color={colors.black} />
+          <View style={styles.squareCheckbox}>
+            {notifications.length > 0 && notifications.every(n => n.isRead) && (
+              <Ionicons name="checkmark" size={14} color={colors.black} />
+            )}
+          </View>
           <Text style={styles.utilityText}>Mark all as read</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
-        {notifications.map((item) => {
-          const config = getNotificationConfig(item.type);
-          return (
-            <TouchableOpacity 
-              activeOpacity={0.9}
-              key={item.id} 
-              onPress={() => markAsRead(item.id)}
-              style={[styles.notifCard, !item.isRead && styles.unreadCard]}
-            >
-              <View style={styles.cardHeader}>
-                <View style={styles.titleGroup}>
-                  <Ionicons name={config.icon} size={24} color={config.color} />
-                  <Text style={styles.notifTitle}>{item.title}</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
+          {notifications.map((item) => {
+            const config = getNotificationConfig(item.type);
+            return (
+              <TouchableOpacity 
+                activeOpacity={0.8}
+                key={item.id} 
+                onPress={() => markAsRead(item.id, item.isRead)}
+                style={[styles.notifCard, !item.isRead && styles.unreadCard]}
+              >
+                {/* Top Section: Icon, Title, and Unread Dot */}
+                <View style={styles.cardHeader}>
+                  <View style={styles.titleGroup}>
+                    <Ionicons name={config.icon} size={24} color={config.color} />
+                    <Text style={styles.notifTitle}>Booking {item.type}</Text>
+                  </View>
+                  {!item.isRead && <View style={styles.redDot} />}
                 </View>
-                <View style={styles.headerActions}>
-                  {!item.isRead && <View style={styles.unreadDot} />}
+
+                {/* Message Section */}
+                <Text style={styles.notifMessage}>{item.message}</Text>
+                
+                {/* Bottom Section: Time and Delete Icon */}
+                <View style={styles.cardFooter}>
+                  <View style={styles.timeRow}>
+                    <Ionicons name="time-outline" size={14} color={colors.gray} />
+                    <Text style={styles.timeText}>{getTimeAgo(item.createdAt)}</Text>
+                  </View>
+                  
                   <TouchableOpacity 
-                    onPress={() => deleteNotification(item.id)}
+                    onPress={() => handleDelete(item.id)} 
                     style={styles.deleteBtn}
                   >
                     <Ionicons name="trash-outline" size={20} color={colors.primary} />
                   </TouchableOpacity>
                 </View>
-              </View>
-
-              <Text style={styles.notifMessage}>{item.message}</Text>
-              
-              <View style={styles.timeRow}>
-                <Ionicons name="time-outline" size={14} color={colors.gray} />
-                <Text style={styles.timeText}>{item.time}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  utilityRow: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 20, paddingVertical: 10 },
+  utilityRow: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 20, paddingVertical: 12 },
   checkboxContainer: { flexDirection: 'row', alignItems: 'center' },
-  utilityText: { marginLeft: 6, fontWeight: 'bold', fontSize: 14, color: colors.black },
+  squareCheckbox: { width: 18, height: 18, borderWidth: 1, borderColor: colors.black, marginRight: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
+  utilityText: { fontWeight: 'bold', fontSize: 15, color: colors.black },
   scrollBody: { paddingHorizontal: 15, paddingBottom: 30 },
-  notifCard: {
-    backgroundColor: colors.white,
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#DDD',
-    elevation: 3,
-  },
-  unreadCard: { backgroundColor: '#FAF3D1', borderColor: colors.secondary },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  notifCard: { backgroundColor: colors.white, borderRadius: 15, padding: 18, marginBottom: 15, borderWidth: 1, borderColor: '#E0E0E0', elevation: 4 },
+  unreadCard: { backgroundColor: '#FAF3D1', borderColor: '#D4C9A1' },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   titleGroup: { flexDirection: 'row', alignItems: 'center' },
-  headerActions: { flexDirection: 'row', alignItems: 'center' },
-  notifTitle: { marginLeft: 10, fontWeight: 'bold', fontSize: 16, color: colors.black },
-  unreadDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary, marginRight: 10 },
-  deleteBtn: { padding: 5 },
-  notifMessage: { fontSize: 14, color: '#444', lineHeight: 20, marginBottom: 10 },
+  notifTitle: { marginLeft: 10, fontWeight: 'bold', fontSize: 17, color: colors.black },
+  redDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#D32F2F' },
+  notifMessage: { fontSize: 14, color: '#333', lineHeight: 20, marginLeft: 34, marginBottom: 10 },
+  cardFooter: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginLeft: 34 
+  },
   timeRow: { flexDirection: 'row', alignItems: 'center' },
-  timeText: { marginLeft: 5, fontSize: 12, color: colors.gray },
+  timeText: { marginLeft: 5, fontSize: 13, color: colors.gray },
+  deleteBtn: { 
+    padding: 5,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    borderRadius: 8
+  },
 });
 
 export default NotificationsScreen;
