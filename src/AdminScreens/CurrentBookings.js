@@ -97,7 +97,7 @@ const CurrentBookings = ({ navigation }) => {
       </View>
 
       <View style={styles.footer}>
-        <Ionicons name="call-outline" size={14} color={colors.gray} />
+        <Ionicons name="call-outline" size={14} color={colors.primary} />
         <Text style={styles.contactText}>Contact: {item.contact}</Text>
       </View>
     </View>
@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12
   },
-  hallLabel: { fontSize: 14, fontWeight: 'bold', color: colors.gray, textTransform: 'uppercase' },
-  locationText: { fontSize: 11, color: '#999' },
+  hallLabel: { fontSize: 14, fontWeight: 'bold', color: colors.black, textTransform: 'uppercase' },
+  locationText: { fontSize: 11, color: '#757373' },
   approvedBadge: { 
     backgroundColor: '#4CAF50', 
     flexDirection: 'row', 
@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
     borderRadius: 12 
   },
   approvedText: { color: '#FFF', fontSize: 10, fontWeight: 'bold', marginLeft: 4 },
-  divider: { height: 1, backgroundColor: '#EEE', marginBottom: 15 },
-  eventTitle: { fontSize: 20, fontWeight: 'bold', color: colors.black, marginBottom: 18 },
+  divider: { height: 1, backgroundColor: '#716d6d', marginBottom: 10 },
+  eventTitle: { fontSize: 16, fontWeight: 'bold', color: colors.black, marginBottom: 15 },
   detailsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 15 },
   detailBox: { 
     flexDirection: 'row', 
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     marginTop: 10, 
     paddingTop: 10, 
     borderTopWidth: 1, 
-    borderTopColor: '#F9F9F9',
+    borderTopColor: '#9a9595',
     flexDirection: 'row',
     alignItems: 'center'
   },
