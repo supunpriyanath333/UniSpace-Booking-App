@@ -66,7 +66,7 @@ const RegisterScreen = ({ navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+      <Image source={require('../../assets/logo 1.png')} style={styles.logo} resizeMode="contain" />
       
       <View style={styles.header}>
         <Text style={styles.title}>Register Now</Text>
@@ -117,7 +117,7 @@ const RegisterScreen = ({ navigation }) => {
         title="Sign up" 
         onPress={handleRegister} 
         loading={loading}
-        style={{marginTop: 30}} 
+        style={{marginTop: 20}} 
       />
 
       {/* Social Sign Up Section */}
@@ -138,18 +138,18 @@ const RegisterScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { padding: 30, backgroundColor: colors.white, flexGrow: 1 },
-  logo: { width: 200, height: 60, alignSelf: 'center', marginBottom: 15 },
-  header: { marginBottom: 15 },
+  logo: { width: 200, height: 100, alignSelf: 'center', marginBottom: 20 },
+  header: { marginBottom: 0 },
   title: { fontSize: 26, fontWeight: 'bold' },
   subtitle: { color: colors.gray, fontSize: 16 },
   label: { fontWeight: 'bold', marginTop: 12, marginBottom: 8 },
   input: { borderWidth: 1, borderColor: colors.gray, borderRadius: 12, height: 50, paddingHorizontal: 15 },
   loginLink: { alignSelf: 'flex-end', marginVertical: 10 },
-  boldText: { fontWeight: 'bold' },
+  boldText: { fontWeight: 'bold'},
   socialSection: { alignItems: 'center', marginTop: 30 },
   orText: { fontSize: 14, fontWeight: 'bold', marginBottom: 15 },
   socialIconsRow: { flexDirection: 'row', gap: 30 },
-  socialIcon: { width: 50, height: 50 },
+  socialIcon: { width: 100, height: 100 },
 });
 
 export default RegisterScreen;

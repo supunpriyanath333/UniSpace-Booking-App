@@ -4,19 +4,19 @@ import colors from '../constants/colors';
 export const GlobalStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background, // Uses '#FFFFFF'
+    backgroundColor: colors.background,
   },
-  // This makes the status bar area yellow
   headerWrapper: {
-    backgroundColor: colors.secondary, // Uses '#F9EDB3'
-    // Adds padding to push content below the clock/signal icons on Android
+    backgroundColor: colors.secondary, 
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     borderBottomWidth: 1,
-    borderColor: colors.black, // Uses '#000000'
+    borderBottomColor: 'rgba(12, 1, 1, 0.15)',
+    elevation: 8, 
+    // ----------------------------
   },
   headerSection: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 15,
     paddingTop: 10, 
   },
   headerTopRow: {
@@ -27,17 +27,15 @@ export const GlobalStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: colors.black, // Uses '#000000'
+    color: colors.black, 
   },
-  // Useful utility for error messages
   errorText: {
-    color: colors.error, // Uses '#DA291C'
+    color: colors.error, 
     fontSize: 14,
     marginTop: 5,
   },
-  // Useful utility for secondary/placeholder text
   secondaryText: {
-    color: colors.gray, // Uses '#787878'
+    color: colors.gray, 
     fontSize: 14,
   }
 });

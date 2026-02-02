@@ -7,9 +7,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import HamburgerMenu from '../components/HamburgerMenu';
-import colors from '../constants/colors'; // Import your global colors
-
-// Firebase Imports
+import colors from '../constants/colors';
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -166,7 +164,7 @@ const ActionCard = ({ title, subtitle, icon, image, onPress }) => (
           <Text style={styles.cardTitle}>{title}</Text>
           <Text style={styles.cardSub}>{subtitle}</Text>
         </View>
-        <Ionicons name="arrow-forward-outline" size={24} color={colors.primary} />
+        <Ionicons name="arrow-forward-outline" size={30} color={colors.primary} />
       </View>
     </ImageBackground>
   </TouchableOpacity>
@@ -195,10 +193,13 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 15,
     borderBottomLeftRadius: 15,
     borderColor: colors.black,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(12, 1, 1, 0.2)',
+        elevation: 8, 
   },
   headerContent: { paddingHorizontal: 20, paddingBottom: 25 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  logo: { width: 200, height: 100, marginBottom: -10 },
+  logo: { width: 170, height: 100, marginBottom: -10 },
   greetingContainer: { marginTop: 0, marginBottom: 10},
   greetingTitle: { fontSize: 26, fontWeight: 'bold', color: colors.text },
   greetingSub: { fontSize: 14, color: '#444' }, // Subtle grey stays for readability

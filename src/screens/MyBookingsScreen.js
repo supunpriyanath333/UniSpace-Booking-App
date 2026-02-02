@@ -199,7 +199,8 @@ const MyBookingsScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   filterRow: { 
-    flexDirection: 'row', 
+    flexDirection: 'row',
+    marginTop: 5, 
     paddingVertical: 15,
     paddingHorizontal: 10,
     justifyContent: 'space-around', 

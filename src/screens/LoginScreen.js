@@ -63,7 +63,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+      <Image source={require('../../assets/logo 1.png')} style={styles.logo} resizeMode="contain" />
       
       <View style={styles.header}>
         <Text style={styles.title}>Get Started Now</Text>
@@ -132,13 +132,13 @@ const LoginScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { padding: 30, backgroundColor: colors.white, flexGrow: 1, justifyContent: 'center' },
-  logo: { width: 220, height: 70, alignSelf: 'center', marginBottom: 20 },
-  header: { marginBottom: 20 },
+  logo: { width: 200, height: 100, alignSelf: 'center', marginBottom: 20 },
+  header: { marginBottom: 0 },
   title: { fontSize: 26, fontWeight: 'bold' },
   subtitle: { color: colors.gray, fontSize: 16 },
   label: { fontWeight: 'bold', marginTop: 15, marginBottom: 8, fontSize: 14 },
-  input: { borderWidth: 1, borderColor: colors.gray, borderRadius: 12, height: 55, paddingHorizontal: 15, color: colors.black },
-  passContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.gray, borderRadius: 12, height: 55, paddingHorizontal: 15 },
+  input: { borderWidth: 1, borderColor: colors.gray, borderRadius: 12, height: 50, paddingHorizontal: 15, color: colors.black },
+  passContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.gray, borderRadius: 12, height: 50, paddingHorizontal: 15 },
   forgot: { alignSelf: 'flex-end', marginVertical: 12 },
   forgotText: { fontWeight: 'bold' },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 25 },
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   orText: { fontSize: 14, fontWeight: 'bold', marginBottom: 20 },
   socialIconsRow: { flexDirection: 'row', gap: 30 },
   socialBtn: { padding: 5 },
-  socialIcon: { width: 50, height: 50 },
+  socialIcon: { width: 100, height: 100 },
 });
 
 export default LoginScreen;

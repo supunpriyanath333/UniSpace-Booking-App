@@ -133,7 +133,7 @@ const AllHallsScreen = ({ route, navigation }) => {
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={30} color={colors.black} /></TouchableOpacity>
             <Text style={styles.headerTitle}>Available Halls</Text>
-            <TouchableOpacity onPress={() => setIsMenuOpen(true)}><Ionicons name="menu" size={35} color={colors.black} /></TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsMenuOpen(true)}><Ionicons name="menu" size={38} color={colors.black} /></TouchableOpacity>
           </View>
           <View style={styles.searchBar}>
             <TextInput 
@@ -181,7 +181,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20, 
     borderBottomWidth: 1, 
     borderColor: colors.black,
-    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight + 10 : 10 
+    paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight + 10 : 10,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(12, 1, 1, 0.15)',
+        elevation: 8,  
   },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text },
